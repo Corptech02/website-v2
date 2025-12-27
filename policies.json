@@ -1,0 +1,12 @@
+[
+  {
+    "id": "test-001",
+    "policy_number": "TEST-001",
+    "insured_name": "Test Company",
+    "type": "Commercial Auto",
+    "status": "Active",
+    "premium": 5000,
+    "server_stored": true,
+    "server_stored_at": "2025-12-26T14:31:42.691Z"
+  }
+]

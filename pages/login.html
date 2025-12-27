@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Vanguard Insurance Group</title>
+    <link rel="stylesheet" href="../css/styles.css?v=11">
+    <link rel="stylesheet" href="../css/pages.css?v=11">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .login-container {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 20px 40px;
+            background-image: url('../images/login-truck-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(100, 100, 100, 0.75) 0%, rgba(60, 60, 60, 0.8) 100%);
+            z-index: 0;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 50px;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .login-footer p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .login-footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .info-text {
+            background: #f0f7ff;
+            border-left: 4px solid var(--primary-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .info-text p {
+            margin: 0;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-text i {
+            color: var(--primary-blue);
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="header" id="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <a href="../index.html">
+                        <img src="../images/vanguard-logo.png" alt="Vanguard Insurance Group" class="logo">
+                    </a>
+                </div>
+                <div class="nav-menu" id="navMenu">
+                    <ul class="nav-list">
+                        <li class="nav-item"><a href="../index.html" class="nav-link">Home</a></li>
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link">Products <i class="fas fa-chevron-down"></i></a>
+                            <div class="dropdown-content">
+                                <a href="commercial-auto.html">Commercial Auto Insurance</a>
+                                <a href="trucking-insurance.html">Trucking Insurance</a>
+                                <a href="general-liability.html">General Liability</a>
+                                <a href="cargo-insurance.html">Cargo Insurance</a>
+                            </div>
+                        </li>
+                        <li class="nav-item"><a href="../index.html#claims" class="nav-link">Claims</a></li>
+                        <li class="nav-item"><a href="../index.html#resources" class="nav-link">Resources</a></li>
+                        <li class="nav-item"><a href="../index.html#about" class="nav-link">About</a></li>
+                        <li class="nav-item"><a href="../index.html#contact" class="nav-link">Contact</a></li>
+                        <li class="nav-item"><a href="quote-commercial-auto.html" class="nav-link">Get a Quote</a></li>
+                    </ul>
+                </div>
+                <div class="nav-actions">
+                    <a href="login.html" class="btn btn-primary">Login</a>
+                    <button class="nav-toggle" id="navToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Login Section -->
+    <section class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>Policyholder Login</h1>
+                <p>Access your insurance policy information</p>
+            </div>
+
+            <div class="info-text">
+                <p><i class="fas fa-info-circle"></i> Enter your policy number and phone number to access your account and manage your insurance coverage.</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="policyNumber">Policy Number</label>
+                    <input
+                        type="text"
+                        id="policyNumber"
+                        name="policyNumber"
+                        placeholder="Enter your policy number"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input
+                        type="tel"
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        placeholder="(555) 123-4567"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Don't have a policy yet?</p>
+                <a href="quote-commercial-auto.html">Get a Free Quote</a>
+                <p style="margin-top: 20px;">Need help? <a href="../index.html#contact">Contact Support</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="../images/vanguard-logo.png" alt="Vanguard Insurance Group" class="footer-logo">
+                    <p>Your trusted partner in commercial trucking insurance.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="../index.html#products">Our Products</a></li>
+                        <li><a href="quote-commercial-auto.html">Get a Quote</a></li>
+                        <li><a href="../index.html#claims">File a Claim</a></li>
+                        <li><a href="../index.html#contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Insurance Products</h4>
+                    <ul>
+                        <li><a href="commercial-auto.html">Commercial Auto</a></li>
+                        <li><a href="trucking-insurance.html">Trucking Insurance</a></li>
+                        <li><a href="general-liability.html">General Liability</a></li>
+                        <li><a href="cargo-insurance.html">Cargo Insurance</a></li>
+                        <li><a href="workers-comp.html">Workers' Compensation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p>2888 Nationwide Pkwy<br>Brunswick, OH 44212</p>
+                    <p>Phone: (330) 460-0872<br>Email: contact@vigagency.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Vanguard Insurance Group. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js?v=20251029"></script>
+    <script src="../js/policy-data.js"></script>
+    <script>
+        console.log('Login page loaded - Version 2.0 with phone number authentication');
+
+        const API_BASE_URL = ''; // Use same domain (proxy will forward to CRM)
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check if already logged in, redirect to dashboard
+            const isLoggedIn = localStorage.getItem('vanguard_logged_in') === 'true';
+            if (isLoggedIn) {
+                window.location.href = 'policyholder-dashboard.html';
+                return;
+            }
+
+            // Format phone number as user types
+            const phoneInput = document.getElementById('phoneNumber');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 0) {
+                        if (value.length <= 3) {
+                            value = '(' + value;
+                        } else if (value.length <= 6) {
+                            value = '(' + value.slice(0, 3) + ') ' + value.slice(3);
+                        } else {
+                            value = '(' + value.slice(0, 3) + ') ' + value.slice(3, 6) + '-' + value.slice(6, 10);
+                        }
+                    }
+                    e.target.value = value;
+                });
+            }
+        });
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const policyNumber = document.getElementById('policyNumber').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.replace(/\D/g, ''); // Remove formatting
+            const submitButton = document.querySelector('.login-btn');
+            const originalButtonText = submitButton.innerHTML;
+
+            console.log('Login attempt:', { policyNumber, phoneNumber: phoneNumber.slice(0, 3) + '***', isTest: policyNumber.toLowerCase() === 'test' });
+
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+
+            // Check for admin secret login
+            if (policyNumber === '25Nickc124' && phoneNumber === '3302417570') {
+                console.log('🔒 ADMIN LOGIN DETECTED - Policy: 25Nickc124, Phone: 3302417570');
+                // Simulate a short loading time
+                setTimeout(() => {
+                    // Store admin authentication data in localStorage
+                    localStorage.setItem('vanguard_logged_in', 'true');
+                    localStorage.setItem('vanguard_auth_token', 'admin_token_secret');
+                    localStorage.setItem('vanguard_policy_number', 'ADMIN-25Nickc124');
+                    localStorage.setItem('vanguard_user_name', 'Administrator');
+                    localStorage.setItem('vanguard_admin_mode', 'true');
+
+                    console.log('🚀 ADMIN: Redirecting to admin-dashboard.html');
+                    // Redirect to admin dashboard
+                    window.location.href = 'admin-dashboard.html';
+                }, 500);
+                return;
+            }
+
+            // Check for test account (UI showcase only - no backend connection)
+            if (policyNumber.toLowerCase() === 'test' && phoneNumber === '1111') {
+                console.log('Test mode activated - no backend connection');
+                // Simulate a short loading time
+                setTimeout(() => {
+                    // Store test authentication data in localStorage
+                    localStorage.setItem('vanguard_logged_in', 'true');
+                    localStorage.setItem('vanguard_auth_token', 'test_token_ui_showcase');
+                    localStorage.setItem('vanguard_policy_number', 'TEST-UI-DEMO');
+                    localStorage.setItem('vanguard_user_name', 'Test User');
+                    localStorage.setItem('vanguard_test_mode', 'true');
+
+                    console.log('Redirecting to dashboard in test mode');
+                    // Redirect to dashboard
+                    window.location.href = 'policyholder-dashboard.html';
+                }, 500);
+                return;
+            }
+
+            try {
+                // Use client-side policy database
+                console.log('Authenticating with client-side database:', {
+                    policyNumber: policyNumber,
+                    phoneNumber: phoneNumber.slice(0, 3) + '***'
+                });
+
+                const authResult = window.policyDB.authenticateUser(policyNumber, phoneNumber);
+                console.log('🔍 CLIENT AUTHENTICATION ATTEMPT:');
+                console.log('  - Policy Number:', policyNumber);
+                console.log('  - Phone Number:', phoneNumber);
+                console.log('  - Auth Result Success:', authResult.success);
+                console.log('  - Auth Result:', authResult);
+
+                if (!authResult.success) {
+                    console.log('❌ CLIENT AUTH FAILED:', authResult.error);
+                } else {
+                    console.log('✅ CLIENT AUTH SUCCESS - User:', authResult.user.name);
+                }
+
+                if (authResult.success) {
+                    console.log('🔓 CLIENT LOGIN SUCCESS - Setting client localStorage data');
+
+                    // Clear any old admin/test mode flags - CRITICAL for client login
+                    localStorage.removeItem('vanguard_test_mode');
+                    localStorage.removeItem('vanguard_admin_mode');
+
+                    // Store authentication data in localStorage
+                    localStorage.setItem('vanguard_logged_in', 'true');
+                    localStorage.setItem('vanguard_auth_token', authResult.token);
+                    localStorage.setItem('vanguard_policy_number', authResult.policy.policy_number);
+                    localStorage.setItem('vanguard_user_name', authResult.user.name);
+                    localStorage.setItem('vanguard_user_email', authResult.user.email);
+                    localStorage.setItem('vanguard_user_phone', authResult.user.phone);
+
+                    console.log('🚀 CLIENT: Redirecting to policyholder-dashboard.html');
+                    console.log('🔍 DEBUG: Admin mode should be cleared:', localStorage.getItem('vanguard_admin_mode'));
+
+                    // Simulate a brief delay for better UX
+                    setTimeout(() => {
+                        window.location.href = 'policyholder-dashboard.html';
+                    }, 800);
+                } else {
+                    // Show error message
+                    setTimeout(() => {
+                        alert('Login Failed\n\n' + authResult.error + '\n\nPlease verify:\n• Policy number is correct\n• Phone number matches the one on file\n\nAvailable test accounts:\n• Policy: test, Phone: 1111 (UI Demo)\n• Policy: 25Nickc124, Phone: 3302417570 (Admin)');
+
+                        // Re-enable button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                setTimeout(() => {
+                    alert('System Error\n\nAn unexpected error occurred during login.\n\nError: ' + error.message + '\n\nPlease try again or contact support.');
+
+                    // Re-enable button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>

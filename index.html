@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    // CRITICAL: Fix application modal z-index to appear above lead profile
+    (function() {
+        function fixModalZIndex() {
+            // Find all fixed position modals with dark backgrounds
+            document.querySelectorAll('div[style*="position: fixed"]').forEach(function(el) {
+                var style = el.getAttribute('style') || '';
+                // Check if it has a dark background (application modal)
+                if (style.includes('rgba(0, 0, 0, 0.8)') || style.includes('rgba(0,0,0,0.8)')) {
+                    var currentZ = parseInt(el.style.zIndex) || 0;
+                    // If z-index is in the 9999999 range (application modal), boost it
+                    if (currentZ >= 9999999 && currentZ < 999999999) {
+                        el.style.zIndex = '999999999';
+                        console.log('Fixed application modal z-index to 999999999');
+                    }
+                }
+            });
+        }
+        
+        // Run on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fixModalZIndex);
+        } else {
+            fixModalZIndex();
+        }
+        
+        // Monitor for new elements
+        setInterval(fixModalZIndex, 200);
+        
+        // Also monitor DOM changes
+        if (typeof MutationObserver !== 'undefined') {
+            var observer = new MutationObserver(fixModalZIndex);
+            observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>VIG Agency - Commercial Trucking Insurance Specialists | Vanguard Insurance Group Ohio</title>
+    <meta name="description" content="VIG Agency (Vanguard Insurance Group Ohio) - #1 Commercial Trucking Insurance Specialists. Instant quotes, comprehensive coverage for fleet owners, owner-operators, and trucking businesses nationwide. Licensed in all 50 states.">
+    <meta name="keywords" content="VIG Agency, Vanguard Insurance Group Ohio, commercial trucking insurance, fleet insurance specialists, owner operator insurance, cargo insurance, general liability, commercial auto insurance, trucking insurance quotes, interstate trucking coverage, CDL insurance">
+    <meta name="author" content="Vanguard Insurance Group">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="1 days">
+    <meta name="google-site-verification" content="your-google-verification-code-here">
+
+    <!-- Enhanced SEO for Google dominance -->
+    <meta name="classification" content="Commercial Trucking Insurance Specialists">
+    <meta name="category" content="Insurance, Commercial Auto, Trucking, Fleet Management">
+    <meta name="coverage" content="Worldwide">
+    <meta name="distribution" content="Global">
+    <meta name="rating" content="General">
+    <meta name="subtitle" content="#1 Commercial Trucking Insurance Specialists - Licensed in All 50 States">
+    <meta name="target" content="fleet owners, owner operators, trucking companies, commercial drivers">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Local Business Schema Enhancement -->
+    <meta name="business.hours" content="Monday-Friday 8:00AM-6:00PM EST">
+    <meta name="business.phone" content="+1-555-VANGUARD">
+    <meta name="business.email" content="info@vigagency.com">
+    <meta name="business.address" content="2888 Nationwide Pkwy, Brunswick, OH 44212">
+    <meta name="business.industry" content="Commercial Trucking Insurance">
+
+    <!-- Competitive Advantage Tags -->
+    <meta name="specialization" content="Interstate Trucking, Fleet Insurance, Owner Operator Coverage">
+    <meta name="unique.selling.proposition" content="Instant Online Quotes, All 50 States Licensed, Specialized Trucking Focus">
+
+    <!-- Additional SEO Tags for better ranking -->
+    <meta name="theme-color" content="#0066cc">
+    <meta name="msapplication-navbutton-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0066cc">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vigagency.com/">
+    <meta property="og:title" content="VIG Agency - #1 Commercial Trucking Insurance Specialists">
+    <meta property="og:description" content="VIG Agency (Vanguard Insurance Group Ohio) - Leading commercial trucking insurance specialists. Instant quotes, comprehensive coverage nationwide. Licensed in all 50 states.">
+    <meta property="og:image" content="https://vigagency.com/images/v-logo.png">
+    <meta property="og:site_name" content="VIG Agency - Vanguard Insurance Group Ohio">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vigagency.com/">
+    <meta property="twitter:title" content="VIG Agency - #1 Commercial Trucking Insurance Specialists">
+    <meta property="twitter:description" content="VIG Agency (Vanguard Insurance Group Ohio) - Leading commercial trucking insurance specialists. Instant quotes nationwide.">
+    <meta property="twitter:image" content="https://vigagency.com/images/v-logo.png">
+
+    <!-- Additional SEO Meta Tags -->
+    <meta name="geo.region" content="US-OH">
+    <meta name="geo.placename" content="Brunswick, Ohio">
+    <meta name="geo.position" content="41.2381;-81.8413">
+    <meta name="business.type" content="Commercial Trucking Insurance Specialists">
+    <meta name="ICBM" content="41.2381, -81.8413">
+    <link rel="canonical" href="https://vigagency.com/">
+
+    <!-- Additional Canonical and Rel Links -->
+    <link rel="alternate" href="https://vigagency.com/" hreflang="en-us">
+    <link rel="alternate" href="https://www.vigagency.com/" hreflang="en">
+    <link rel="publisher" href="https://vigagency.com/">
+
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="images/v-logo.png" as="image">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "InsuranceAgency",
+        "name": "VIG Agency - Vanguard Insurance Group Ohio",
+        "alternateName": ["VIG Agency", "Vanguard Insurance Group Ohio", "VIG Commercial Trucking Insurance"],
+        "description": "#1 Commercial trucking insurance specialists providing comprehensive coverage for fleet owners, owner-operators, and trucking businesses nationwide. Licensed in all 50 states with instant online quotes.",
+        "url": "https://vigagency.com",
+        "logo": "https://vigagency.com/images/v-logo.png",
+        "image": "https://vigagency.com/images/v-logo.png",
+        "telephone": "+1-555-VANGUARD",
+        "email": "info@vigagency.com",
+        "sameAs": [
+            "https://vigagency.com",
+            "https://www.vigagency.com"
+        ],
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "2888 Nationwide Pkwy",
+            "addressLocality": "Brunswick",
+            "addressRegion": "OH",
+            "postalCode": "44212",
+            "addressCountry": "US"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": "41.2381",
+            "longitude": "-81.8413"
+        },
+        "serviceArea": [
+            {
+                "@type": "Country",
+                "name": "United States"
+            },
+            {
+                "@type": "State",
+                "name": "Ohio"
+            },
+            {
+                "@type": "AdministrativeArea",
+                "name": "Interstate Trucking Coverage"
+            }
+        ],
+        "areaServed": "Nationwide Commercial Trucking Insurance Coverage",
+        "specialization": "Commercial Trucking Insurance",
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Commercial Trucking Insurance Services",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Commercial Auto Insurance",
+                        "description": "Comprehensive commercial auto insurance for trucking businesses and fleet owners"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Cargo Insurance",
+                        "description": "Protection for freight and cargo transported by commercial vehicles"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "General Liability Insurance",
+                        "description": "General liability coverage for trucking and transportation businesses"
+                    }
+                }
+            ]
+        },
+        "founder": {
+            "@type": "Person",
+            "name": "Grant Corp"
+        },
+        "priceRange": "$$",
+        "paymentAccepted": ["Credit Card", "Check", "Bank Transfer"],
+        "currenciesAccepted": "USD",
+        "openingHours": "Mo-Fr 08:00-18:00",
+        "hasCredential": {
+            "@type": "EducationalOccupationalCredential",
+            "credentialCategory": "Licensed Insurance Agency - All 50 States"
+        },
+        "keywords": "VIG Agency, Vanguard Insurance Group Ohio, commercial trucking insurance specialists, fleet insurance, owner operator insurance, cargo insurance, general liability, commercial auto insurance, CDL insurance, interstate trucking coverage, trucking insurance quotes"
+    },
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "@id": "https://vigagency.com/#business",
+        "name": "VIG Agency - Vanguard Insurance Group Ohio",
+        "image": "https://vigagency.com/images/v-logo.png",
+        "telephone": "+1-555-VANGUARD",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "2888 Nationwide Pkwy",
+            "addressLocality": "Brunswick",
+            "addressRegion": "OH",
+            "postalCode": "44212",
+            "addressCountry": "US"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 41.2381,
+            "longitude": -81.8413
+        },
+        "url": "https://vigagency.com",
+        "sameAs": [
+            "https://www.vigagency.com"
+        ],
+        "openingHoursSpecification": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ],
+            "opens": "08:00",
+            "closes": "18:00"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "bestRating": "5",
+            "worstRating": "1",
+            "ratingCount": "127"
+        }
+    }
+    </script>
+
+    <link rel="icon" type="image/png" href="images/v-logo.png?v=2">
+    <link rel="shortcut icon" type="image/png" href="images/v-logo.png?v=2">
+    <link rel="apple-touch-icon" href="images/v-logo.png?v=2">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/coi-styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="header" id="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <img src="images/vanguard-logo.png" alt="Vanguard Insurance Group" class="logo">
+                </div>
+                <div class="nav-menu" id="navMenu">
+                    <ul class="nav-list">
+                        <li class="nav-item"><a href="#home" class="nav-link">Home</a></li>
+                        <li class="nav-item dropdown">
+                            <a href="#products" class="nav-link">Products <i class="fas fa-chevron-down"></i></a>
+                            <div class="dropdown-content">
+                                <a href="pages/commercial-auto.html">Commercial Auto Insurance</a>
+                                <a href="pages/trucking-insurance.html">Trucking Insurance</a>
+                                <a href="pages/general-liability.html">General Liability</a>
+                                <a href="pages/cargo-insurance.html">Cargo Insurance</a>
+                            </div>
+                        </li>
+                        <li class="nav-item"><a href="#claims" class="nav-link">Claims</a></li>
+                        <li class="nav-item"><a href="#resources" class="nav-link">Resources</a></li>
+                        <li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
+                        <li class="nav-item"><a href="#contact" class="nav-link">Contact</a></li>
+                        <li class="nav-item"><a href="pages/quote-commercial-auto.html" class="nav-link">Get a Quote</a></li>
+                    </ul>
+                </div>
+                <div class="nav-actions">
+                    <a href="pages/login.html" class="btn btn-primary">Login</a>
+                    <button class="nav-toggle" id="navToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-background">
+            <img src="images/truck-fleet-hero.jpg" alt="Commercial Trucking Fleet Insurance" class="hero-bg-image">
+            <div class="hero-overlay"></div>
+            <div class="animated-bg"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title animate-fade-up">
+                VIG Agency - #1 Commercial Trucking Insurance Specialists
+                <span class="hero-subtitle">Leading Commercial Trucking Insurance Specialists</span>
+            </h1>
+            <p class="hero-description animate-fade-up-delay">
+                Vanguard Insurance Group (VIG) provides comprehensive commercial trucking insurance solutions for fleet owners, owner-operators, and trucking businesses nationwide.
+                As trusted insurance specialists, we understand the unique risks of commercial transportation and keep your business moving forward with tailored coverage.
+            </p>
+            <div class="hero-actions animate-fade-up-delay-2">
+                <a href="pages/quote-commercial-auto.html" class="btn btn-large btn-primary">Get Your Free Quote</a>
+                <a href="#products" class="btn btn-large btn-outline">Explore Coverage</a>
+            </div>
+        </div>
+        <div class="hero-scroll-indicator">
+            <div class="mouse-icon">
+                <div class="wheel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="products">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Commercial Trucking Insurance Solutions</h2>
+                <p class="section-subtitle">Specialized coverage built for trucking and fleet operations - Licensed in all 50 states</p>
+            </div>
+            <div class="products-grid">
+                <div class="product-card" data-aos="fade-up">
+                    <div class="product-image">
+                        <img src="images/cargo-freight.jpg" alt="Commercial Auto & Trucking Insurance">
+                    </div>
+                    <div class="product-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3>Commercial Auto & Trucking</h3>
+                    <p>Comprehensive coverage for your entire fleet including liability, physical damage, and specialized trucking needs.</p>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check"></i> Long-Haul Trucking Coverage</li>
+                        <li><i class="fas fa-check"></i> Local & Regional Delivery</li>
+                        <li><i class="fas fa-check"></i> Fleet Auto Liability</li>
+                        <li><i class="fas fa-check"></i> Physical Damage Protection</li>
+                    </ul>
+                    <a href="pages/commercial-auto.html" class="btn btn-secondary">Learn More</a>
+                </div>
+                <div class="product-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="product-image">
+                        <img src="images/commercial-trucking.jpg" alt="General Liability & Cargo Insurance">
+                    </div>
+                    <div class="product-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>General Liability & Cargo</h3>
+                    <p>Protect your business from third-party claims and secure your freight with comprehensive cargo coverage.</p>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check"></i> General Liability Insurance</li>
+                        <li><i class="fas fa-check"></i> Motor Truck Cargo Coverage</li>
+                        <li><i class="fas fa-check"></i> Reefer Breakdown Protection</li>
+                        <li><i class="fas fa-check"></i> Loading/Unloading Coverage</li>
+                    </ul>
+                    <a href="pages/general-liability.html" class="btn btn-secondary">Learn More</a>
+                </div>
+                <div class="product-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="product-image">
+                        <img src="images/business-protection.jpg" alt="Business Protection Package">
+                    </div>
+                    <div class="product-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Business Protection Package</h3>
+                    <p>Complete coverage for your trucking business including property, workers' comp, and occupational accident.</p>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check"></i> Commercial Property Insurance</li>
+                        <li><i class="fas fa-check"></i> Workers' Compensation</li>
+                        <li><i class="fas fa-check"></i> Occupational Accident Coverage</li>
+                        <li><i class="fas fa-check"></i> Non-Trucking Liability</li>
+                    </ul>
+                    <a href="pages/business-protection.html" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="quote-section" id="quote">
+        <div class="container">
+            <div class="quote-wrapper">
+                <div class="quote-content">
+                    <h2>Quick Quote Calculator</h2>
+                    <p>Quick, easy, and no obligation. Get a personalized quote in minutes.</p>
+                </div>
+                <div class="quote-form-container">
+                    <form class="quote-form" id="quoteForm">
+                        <div class="form-group">
+                            <label for="usdot">USDOT Number</label>
+                            <input type="text" id="usdot" name="usdot" placeholder="Enter USDOT Number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="insuranceType">Insurance Type</label>
+                            <select id="insuranceType" name="insuranceType" required>
+                                <option value="">Select Insurance Type</option>
+                                <option value="commercial-auto">Commercial Auto / Trucking</option>
+                                <option value="general-liability">General Liability</option>
+                                <option value="cargo">Cargo Insurance</option>
+                                <option value="workers-comp">Workers' Compensation</option>
+                                <option value="complete-package">Complete Business Package</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large btn-block">QUICK-QUOTE CALCULATE</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Claims Section -->
+    <section class="claims" id="claims">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">File a Claim</h2>
+                <p class="section-subtitle">We're here to help when you need us most</p>
+            </div>
+            <div class="claims-process">
+                <div class="process-step" data-aos="fade-right">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Report Your Claim</h3>
+                        <p>Call our 24/7 claims hotline or file online. We'll guide you through the process.</p>
+                    </div>
+                </div>
+                <div class="process-step" data-aos="fade-right" data-aos-delay="100">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Claim Review</h3>
+                        <p>Our experts will review your claim and may schedule an inspection if needed.</p>
+                    </div>
+                </div>
+                <div class="process-step" data-aos="fade-right" data-aos-delay="200">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Quick Resolution</h3>
+                        <p>We process claims quickly and keep you informed throughout the entire process.</p>
+                    </div>
+                </div>
+                <div class="process-step" data-aos="fade-right" data-aos-delay="300">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Payment</h3>
+                        <p>Once approved, we'll issue payment promptly to help you recover quickly.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="claims-cta">
+                <a href="#" class="btn btn-primary btn-large">File a Claim Now</a>
+                <span class="claims-phone">Or Call: <strong>(330) 460-0872</strong></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section class="resources" id="resources">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Insurance Resources</h2>
+                <p class="section-subtitle">Knowledge and tools to help you make informed decisions</p>
+            </div>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <div class="resource-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3>Coverage Calculator</h3>
+                    <p>Determine the right amount of coverage for your specific needs.</p>
+                    <a href="pages/coverage-calculator.html" class="resource-link">Calculate Now <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Insurance Guide</h3>
+                    <p>Comprehensive guides to understanding different types of insurance.</p>
+                    <a href="pages/insurance-guide.html" class="resource-link">Read Guides <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3>FAQs</h3>
+                    <p>Find answers to commonly asked questions about insurance coverage.</p>
+                    <a href="pages/faqs.html" class="resource-link">View FAQs <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon">
+                        <i class="fas fa-blog"></i>
+                    </div>
+                    <h3>Insurance Blog</h3>
+                    <p>Stay informed with latest insurance news, tips, and industry updates.</p>
+                    <a href="pages/blog.html" class="resource-link">Read Blog <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="why-us">
+        <img src="images/business-meeting.jpg" alt="Business Meeting" class="section-bg-image">
+        <div class="section-overlay"></div>
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Choose Vanguard Insurance Group for Your Fleet</h2>
+                <p class="section-subtitle">Specialized commercial trucking insurance solutions from industry-leading professionals</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-item" data-aos="zoom-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Trucking Specialists</h3>
+                    <p>Deep expertise in commercial auto and trucking insurance with comprehensive fleet protection.</p>
+                </div>
+                <div class="feature-item" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Industry Experts</h3>
+                    <p>Dedicated agents who understand DOT regulations, FMCSA compliance, and trucking operations.</p>
+                </div>
+                <div class="feature-item" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3>Fleet Discounts</h3>
+                    <p>Competitive rates for owner-operators and large fleets with multi-vehicle savings.</p>
+                </div>
+                <div class="feature-item" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>24/7 Roadside Support</h3>
+                    <p>Emergency claims assistance whenever your trucks are on the road - day or night.</p>
+                </div>
+                <div class="feature-item" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Fast COI Delivery</h3>
+                    <p>Get Certificates of Insurance instantly for brokers and shippers with our digital platform.</p>
+                </div>
+                <div class="feature-item" data-aos="zoom-in" data-aos-delay="500">
+                    <div class="feature-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>A+ Rated Carriers</h3>
+                    <p>Partnered with top commercial truck insurers who understand the transportation industry.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Performing Agents Section -->
+    <section class="top-agents">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Top Performing Agents</h2>
+                <p class="section-subtitle">Meet the experts dedicated to protecting your business</p>
+            </div>
+            <div class="agents-grid">
+                <!-- Hunter Brooks -->
+                <div class="agent-card" data-agent="hunter" onclick="window.location.href='agents/hunter-brooks.html'" style="cursor: pointer;">
+                    <div class="agent-photo-container">
+                        <div class="agent-photo">
+                            <img src="images/about/hunter-headshot.png" alt="Hunter Brooks">
+                        </div>
+                    </div>
+                    <div class="agent-info">
+                        <h3>Hunter Brooks</h3>
+                        <p class="agent-title">Insurance Agent</p>
+                        <div class="agent-stats">
+                            <div class="agent-stat">
+                                <span class="stat-value">95%</span>
+                                <span class="stat-label">Client Satisfaction</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grant Corp (Center/Featured) -->
+                <div class="agent-card agent-card-featured" data-agent="grant" onclick="window.location.href='agents/grant-corp.html'" style="cursor: pointer;">
+                    <div class="featured-badge">
+                        <i class="fas fa-star"></i> Top Performer
+                    </div>
+                    <div class="agent-photo-container">
+                        <div class="agent-photo">
+                            <img src="images/about/headshot-one.png" alt="Grant Corp">
+                        </div>
+                    </div>
+                    <div class="agent-info">
+                        <h3>Grant Corp</h3>
+                        <p class="agent-title">Insurance Agent</p>
+                        <div class="agent-stats">
+                            <div class="agent-stat">
+                                <span class="stat-value">98%</span>
+                                <span class="stat-label">Client Satisfaction</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carson Sweitzer -->
+                <div class="agent-card" data-agent="carson" onclick="window.location.href='agents/carson-sweitzer.html'" style="cursor: pointer;">
+                    <div class="agent-photo-container">
+                        <div class="agent-photo">
+                            <img src="images/about/carson-headshot.png" alt="Carson Sweitzer">
+                        </div>
+                    </div>
+                    <div class="agent-info">
+                        <h3>Carson Sweitzer</h3>
+                        <p class="agent-title">Insurance Agent</p>
+                        <div class="agent-stats">
+                            <div class="agent-stat">
+                                <span class="stat-value">96%</span>
+                                <span class="stat-label">Client Satisfaction</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">What Our Clients Say</h2>
+                <p class="section-subtitle">Real experiences from real customers</p>
+            </div>
+            <div class="testimonials-slider">
+                <div class="testimonial-card active">
+                    <div class="testimonial-content">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p>"Vanguard Insurance Group understands trucking. They got my fleet covered with competitive rates and coverage I can trust. Best decision I made for my company."</p>
+                        <div class="testimonial-author">
+                            <strong>Michael Thompson</strong>
+                            <span>Owner, Thompson Logistics</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p>"After a major accident, Vanguard handled everything quickly. They kept my drivers on the road and my business running. Their claims team is outstanding!"</p>
+                        <div class="testimonial-author">
+                            <strong>Sarah Martinez</strong>
+                            <span>Fleet Manager, Martinez Transport</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p>"As an owner-operator, finding affordable trucking insurance was tough. Vanguard got me covered at rates I could afford. Professional service all the way!"</p>
+                        <div class="testimonial-author">
+                            <strong>David Chen</strong>
+                            <span>Owner-Operator, Chen Trucking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-dots">
+                <span class="dot active" data-slide="0"></span>
+                <span class="dot" data-slide="1"></span>
+                <span class="dot" data-slide="2"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section class="location" id="location">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Visit Our Office</h2>
+                <p class="section-subtitle">Come see us at our Brunswick location</p>
+            </div>
+            <div class="location-wrapper">
+                <div class="location-map">
+                    <iframe
+                        src="https://maps.google.com/maps?q=2888+Nationwide+Pkwy,+Brunswick,+OH+44212&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                        width="100%"
+                        height="450"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+                <div class="location-info">
+                    <div class="location-images">
+                        <div class="location-image location-image-large">
+                            <img src="images/office1.png" alt="Vanguard Insurance Office Exterior">
+                        </div>
+                        <div class="location-image-row">
+                            <div class="location-image">
+                                <img src="images/insideoffic1.png" alt="Vanguard Insurance Office Interior">
+                            </div>
+                            <div class="location-image">
+                                <img src="images/confranceroom1.png" alt="Vanguard Insurance Conference Room">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <img src="images/family-protection.jpg" alt="Family Protection" class="contact-bg-image">
+        <div class="contact-overlay"></div>
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="section-subtitle">We're here to answer your questions</p>
+            </div>
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Main Office</h4>
+                            <p>2888 Nationwide Pkwy<br>Brunswick, OH 44212</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>Phone</h4>
+                            <p>Main: (330) 460-0872<br>Claims: (330) 460-0872</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email</h4>
+                            <p>contact@vigagency.com<br>Grant@vigagency.com</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Business Hours</h4>
+                            <p>Mon-Fri: 8:00 AM - 6:00 PM<br>Sat: 9:00 AM - 2:00 PM</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form-wrapper">
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-group">
+                            <input type="text" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" placeholder="Subject">
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Your Message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="images/vanguard-logo.png" alt="Vanguard Insurance Group" class="footer-logo">
+                    <p>Your trusted partner in commercial trucking insurance. Keeping your fleet protected and your business moving forward.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#products">Our Products</a></li>
+                        <li><a href="pages/quote-commercial-auto.html">Get a Quote</a></li>
+                        <li><a href="#claims">File a Claim</a></li>
+                        <li><a href="#resources">Resources</a></li>
+                        <li><a href="#about">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Insurance Products</h4>
+                    <ul>
+                        <li><a href="pages/commercial-auto.html">Commercial Auto</a></li>
+                        <li><a href="pages/trucking-insurance.html">Trucking Insurance</a></li>
+                        <li><a href="pages/general-liability.html">General Liability</a></li>
+                        <li><a href="pages/cargo-insurance.html">Cargo Insurance</a></li>
+                        <li><a href="pages/workers-comp.html">Workers' Compensation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <p>Subscribe to get insurance tips and updates</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Your email address">
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Vanguard Insurance Group. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- COI Request Modal -->
+    <div class="coi-modal" id="coiModal">
+        <div class="coi-modal-content">
+            <div class="coi-modal-header">
+                <h2><i class="fas fa-certificate"></i> Request Certificate of Insurance</h2>
+                <button class="coi-close" onclick="closeCOIModal()">&times;</button>
+            </div>
+            <div class="coi-modal-body">
+                <p class="coi-intro">Please provide your policy information to request your Certificate of Insurance. We'll process your request within 24 hours.</p>
+                
+                <form id="coiRequestForm" onsubmit="submitCOIRequest(event)">
+                    <div class="coi-form-group">
+                        <label for="policyNumber">
+                            <i class="fas fa-file-contract"></i> Policy Number *
+                        </label>
+                        <input type="text" id="policyNumber" name="policyNumber" required 
+                               placeholder="Enter your policy number (e.g., CA-2024-12345)" 
+                               pattern="[A-Z]{2}-\d{4}-\d{5}" 
+                               title="Format: XX-YYYY-NNNNN">
+                        <small>Format: XX-YYYY-NNNNN (e.g., CA-2024-12345)</small>
+                    </div>
+                    
+                    <div class="coi-form-group">
+                        <label for="phoneNumber">
+                            <i class="fas fa-phone"></i> Phone Number *
+                        </label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required 
+                               placeholder="(555) 123-4567" 
+                               pattern="\(\d{3}\) \d{3}-\d{4}"
+                               title="Format: (555) 123-4567">
+                        <small>We'll contact you at this number if we need additional information</small>
+                    </div>
+                    
+                    <div class="coi-form-group">
+                        <label for="certificateHolder">
+                            <i class="fas fa-building"></i> Certificate Holder Name
+                        </label>
+                        <input type="text" id="certificateHolder" name="certificateHolder" 
+                               placeholder="Name of entity requiring the certificate">
+                    </div>
+                    
+                    <div class="coi-form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email Address *
+                        </label>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="your.email@example.com">
+                        <small>We'll send your COI to this email address</small>
+                    </div>
+                    
+                    <div class="coi-form-group">
+                        <label for="additionalInfo">
+                            <i class="fas fa-comment"></i> Additional Information
+                        </label>
+                        <textarea id="additionalInfo" name="additionalInfo" rows="3" 
+                                  placeholder="Any special requirements or additional insured information"></textarea>
+                    </div>
+                    
+                    <div class="coi-form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCOIModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- COI Success Message -->
+    <div class="coi-success" id="coiSuccess">
+        <div class="coi-success-content">
+            <i class="fas fa-check-circle"></i>
+            <h3>Request Submitted Successfully!</h3>
+            <p>Your Certificate of Insurance request has been received. We'll send it to your email within 24 hours.</p>
+            <button class="btn btn-primary" onclick="closeSuccessMessage()">OK</button>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/coi-request.js"></script>
+</body>
+</html>
