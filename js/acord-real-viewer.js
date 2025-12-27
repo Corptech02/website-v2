@@ -480,12 +480,12 @@ function createRealFormFields(policyId, policyData) {
         { id: 'wcExpDate', x: 491, y: 647, width: 61, height: 16,
           value: '' },
 
-        // === OTHER POLICY FIELDS (Motor Truck Cargo) ===
+        // === MIDDLE ROW (y: 702) - PHYSICAL DAMAGE COVERAGE ===
         { id: 'otherInsurer', x: 23, y: 702, width: 23, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              console.log('🚛 Motor Truck Cargo coverage check:', hasCargoLimits, 'cargo_limit:', policyData?.coverage?.cargo_limit);
-              return hasCargoLimits ? 'A' : '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              return (compDed > 0 && collDed > 0) ? 'A' : '';
           })() },
         { id: 'otherAddlInsd', x: 229, y: 702, width: 23, height: 16,
           value: '' },
@@ -493,33 +493,33 @@ function createRealFormFields(policyId, policyData) {
           value: '' },
         { id: 'otherPolicyNum', x: 281, y: 702, width: 146, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              return hasCargoLimits ? (policyData?.policy_number || policyData?.policyNumber || '') : '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              return (compDed > 0 && collDed > 0) ? (policyData?.policy_number || policyData?.policyNumber || '') : '';
           })() },
         { id: 'otherEffDate', x: 430, y: 702, width: 61, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              return hasCargoLimits ? formatDateForACORD(policyData?.effective_date) : '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              return (compDed > 0 && collDed > 0) ? formatDateForACORD(policyData?.effective_date) : '';
           })() },
         { id: 'otherExpDate', x: 491, y: 702, width: 61, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              return hasCargoLimits ? formatDateForACORD(policyData?.expiration_date) : '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              return (compDed > 0 && collDed > 0) ? formatDateForACORD(policyData?.expiration_date) : '';
           })() },
         { id: 'otherLimits', x: 552, y: 702, width: 83, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              if (hasCargoLimits) {
-                  const cargoLimit = policyData?.coverage?.cargo_limit || '';
-                  console.log('💰 Cargo Limit field:', cargoLimit);
-                  return cargoLimit ? `LIMIT ${cargoLimit}` : '';
-              }
-              return '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              return (compDed > 0 && collDed > 0) ? 'COMP & COLLISION' : '';
           })() },
         { id: 'otherDescription', x: 52, y: 702, width: 173, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              return hasCargoLimits ? 'Motor Truck Cargo' : '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              return (compDed > 0 && collDed > 0) ? 'PHYSICAL DAMAGE' : '';
           })() },
         { id: 'glInsurer', x: 23, y: 437, width: 23, height: 16,
           value: 'A' },
@@ -602,37 +602,75 @@ function createRealFormFields(policyId, policyData) {
 
         // === OTHER POLICY LIMITS ===
         { id: 'otherLimit1', x: 684, y: 686, width: 83, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              const cargoDeductible = policyData?.coverage?.cargo_deductible || policyData?.coverage?.['Cargo Deductible'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoDeductible) ?
+                     `DED. $${cargoDeductible}` : '';
+          })() },
         { id: 'otherLimit2', x: 684, y: 702, width: 83, height: 16,
           value: (function() {
-              const hasCargoLimits = policyData?.coverage?.cargo_limit && policyData?.coverage?.cargo_limit !== '';
-              if (hasCargoLimits) {
-                  const cargoDeductible = policyData?.coverage?.cargo_deductible || '';
-                  console.log('💰 Cargo Deductible in otherLimit2:', cargoDeductible);
-                  return cargoDeductible ? `DED. ${cargoDeductible}` : '';
+              const compDed = parseFloat(policyData?.coverage?.comprehensive_deductible || policyData?.coverage?.['Comprehensive Deductible'] || '0');
+              const collDed = parseFloat(policyData?.coverage?.collision_deductible || policyData?.coverage?.['Collision Deductible'] || '0');
+              if (compDed > 0 && collDed > 0) {
+                  // Check if both deductibles are the same
+                  if (compDed === collDed) {
+                      return `DED. $${compDed} EACH`;
+                  } else {
+                      return `DED. $${compDed}/$${collDed}`;
+                  }
               }
               return '';
           })() },
         { id: 'otherLimit3', x: 684, y: 718, width: 83, height: 16,
           value: '' },
 
-        // === ADDITIONAL TEXT BOXES ABOVE THE HORIZONTAL ROW (y: 686) ===
+        // === ADDITIONAL TEXT BOXES ABOVE THE HORIZONTAL ROW (y: 686) - MOTOR TRUCK CARGO ===
         { id: 'otherInsurerAbove', x: 23, y: 686, width: 23, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '') ? 'A' : '';
+          })() },
         { id: 'otherDescriptionAbove', x: 52, y: 686, width: 173, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '') ? 'MOTOR TRUCK CARGO' : '';
+          })() },
         { id: 'otherAddlInsdAbove', x: 229, y: 686, width: 23, height: 16,
           value: '' },
         { id: 'otherSubrWvdAbove', x: 252, y: 686, width: 23, height: 16,
           value: '' },
         { id: 'otherPolicyNumAbove', x: 281, y: 686, width: 146, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '') ?
+                     (policyData?.policy_number || policyData?.policyNumber || '') : '';
+          })() },
         { id: 'otherEffDateAbove', x: 430, y: 686, width: 61, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '') ?
+                     formatDateForACORD(policyData?.effective_date) : '';
+          })() },
         { id: 'otherExpDateAbove', x: 491, y: 686, width: 61, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '') ?
+                     formatDateForACORD(policyData?.expiration_date) : '';
+          })() },
         { id: 'otherLimitsAbove', x: 552, y: 686, width: 83, height: 16,
-          value: '' },
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '') ?
+                     `LIMIT $${cargoLimit}` : '';
+          })() },
+        { id: 'otherDeductibleAbove', x: 635, y: 686, width: 83, height: 16,
+          value: (function() {
+              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
+              const cargoDeductible = policyData?.coverage?.cargo_deductible || policyData?.coverage?.['Cargo Deductible'] || '';
+              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoDeductible) ?
+                     `DED. $${cargoDeductible}` : '';
+          })() },
 
         // === ADDITIONAL TEXT BOXES BELOW THE HORIZONTAL ROW (y: 718) ===
         { id: 'otherInsurerBelow', x: 23, y: 718, width: 23, height: 16,

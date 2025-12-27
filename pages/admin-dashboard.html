@@ -3485,8 +3485,19 @@ contact@vigagency.com`;
                 }
             };
 
+            console.log('🔍 DEBUG: Full policy object for field mapping:', JSON.stringify(policy, null, 2));
+            console.log('🔍 DEBUG: Available client name fields:', {
+                'policy.insured_name': policy.insured_name,
+                'policy.client_name': policy.client_name,
+                'policy.clientName': policy.clientName,
+                'policy.name': policy.name,
+                'policy.Name': policy.Name,
+                'policy.client': policy.client,
+                'policy.insured': policy.insured
+            });
+
             setFieldValue('editPolicyNumber', policy.policy_number);
-            setFieldValue('editClientName', policy.client_name || policy.insured_name);
+            setFieldValue('editClientName', policy.insured_name || policy.client_name || policy.clientName || policy.name || policy.Name);
             setFieldValue('editClientPhone', policy.client_phone);
             setFieldValue('editClientEmail', policy.client_email);
             setFieldValue('editCarrier', policy.carrier);
@@ -3499,8 +3510,15 @@ contact@vigagency.com`;
             // Show modal immediately
             const modal = document.getElementById('editPolicyModal');
             if (modal) {
+                // Update modal title to show which policy is being edited
+                const title = modal.querySelector('h2');
+                if (title) {
+                    const clientName = policy.insured_name || policy.client_name || policy.clientName || 'Unknown Client';
+                    title.innerHTML = `<i class="fas fa-edit"></i> Edit Policy - ${clientName}`;
+                }
+
                 modal.style.display = 'flex';
-                console.log('✅ Edit modal opened');
+                console.log('✅ Edit modal opened for:', clientName);
             }
 
             // Populate vehicles, drivers, and trailers after a delay to ensure clean containers
@@ -3634,10 +3652,23 @@ contact@vigagency.com`;
                             };
 
 
-                            window.viewClient = function(policyId) {
+                            window.viewPolicy = function(policyId) {
+                                console.log('📄 viewPolicy called with:', policyId);
                                 const policy = window.allPolicies.find(p => p.id === policyId);
-                                if (policy) {
-                                    alert(`Client Information:\n\nName: ${policy.insured_name}\nPhone: ${policy.client_phone}\nEmail: ${policy.client_email}\nPolicy: ${policy.policy_number}`);
+                                if (!policy) {
+                                    alert('Policy not found!');
+                                    return;
+                                }
+
+                                // Check if there's a saved COI document for this policy
+                                if (policy.coiDocuments && policy.coiDocuments.length > 0) {
+                                    // Show the saved COI document
+                                    window.showCOIModal(policy);
+                                } else {
+                                    // No COI found, offer to generate one
+                                    if (confirm('No COI document found for this policy. Would you like to generate one?')) {
+                                        window.generateCOI(policyId, policy.policy_number);
+                                    }
                                 }
                             };
 
@@ -4236,7 +4267,7 @@ contact@vigagency.com`;
     <script src="../pdf.min.js"></script>
 
     <!-- Real ACORD Viewer System -->
-    <script src="../js/acord-real-viewer.js?v=20251222-fix-signature-logic"></script>
+    <script src="../js/acord-real-viewer.js?v=20251227-cargo-physical-damage"></script>
     <script src="../js/acord-25-embedded.js?v=20251221-concise"></script>
     <script src="../js/fix-acord-download-print.js?v=20251222-fix-import-interception"></script>
     <script>
@@ -4831,8 +4862,8 @@ contact@vigagency.com`;
                         <button class="policy-btn secondary" data-action="editPolicy" data-policy-id="${policy.id}">
                             <i class="fas fa-edit"></i> Edit Policy
                         </button>
-                        <button class="policy-btn secondary" data-action="viewClient" data-policy-id="${policy.id}">
-                            <i class="fas fa-user"></i> View Client
+                        <button class="policy-btn secondary" data-action="viewPolicy" data-policy-id="${policy.id}">
+                            <i class="fas fa-file-alt"></i> View Policy
                         </button>
                         <button class="policy-btn danger" data-action="deletePolicy" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}">
                             <i class="fas fa-trash"></i> Delete
@@ -6619,6 +6650,10 @@ contact@vigagency.com`;
                                             return;
                                         }
 
+                                        // Clear existing vehicles to prevent duplication
+                                        container.innerHTML = '';
+                                        console.log('🗑️ Cleared existing vehicles from container');
+
                                         vehicles.forEach((vehicle, index) => {
                                             console.log('🚗 Adding vehicle', index + 1, ':', vehicle);
                                             const vehicleDiv = document.createElement('div');
@@ -6668,6 +6703,10 @@ contact@vigagency.com`;
                                             return;
                                         }
 
+                                        // Clear existing trailers to prevent duplication
+                                        container.innerHTML = '';
+                                        console.log('🗑️ Cleared existing trailers from container');
+
                                         trailers.forEach((trailer, index) => {
                                             console.log('🚛 Adding trailer', index + 1, ':', trailer);
                                             const trailerDiv = document.createElement('div');
@@ -6716,6 +6755,10 @@ contact@vigagency.com`;
                                             console.error('❌ driversList container not found');
                                             return;
                                         }
+
+                                        // Clear existing drivers to prevent duplication
+                                        container.innerHTML = '';
+                                        console.log('🗑️ Cleared existing drivers from container');
 
                                         drivers.forEach((driver, index) => {
                                             console.log('👤 Adding driver', index + 1, ':', driver);
@@ -6800,8 +6843,9 @@ contact@vigagency.com`;
                                             // Populate basic policy fields with comprehensive field mapping
                                             const fields = {
                                                 'editPolicyNumber': policy.policy_number || policy.policyNumber,
-                                                'editInsuredName': policy.insured_name || policy.client_name || policy.clientName,
+                                                'editClientName': policy.insured_name || policy.client_name || policy.clientName,
                                                 'editCarrier': policy.carrier,
+                                                'editAgency': policy.agency,
                                                 'editType': policy.type || policy.policyType,
                                                 'editStatus': policy.status || policy.policyStatus,
                                                 'editPremium': policy.premium || policy.annualPremium,
@@ -7177,10 +7221,10 @@ contact@vigagency.com`;
                                 window.addTrailerContainer = window.addTrailer;
                                 window.addDriverContainer = window.addDriver;
                                 break;
-                            case 'viewClient':
-                                console.log('👤 Calling viewClient function...');
-                                if (window.viewClient) window.viewClient(policyId);
-                                else console.error('❌ viewClient function not found');
+                            case 'viewPolicy':
+                                console.log('📄 Calling viewPolicy function...');
+                                if (window.viewPolicy) window.viewPolicy(policyId);
+                                else console.error('❌ viewPolicy function not found');
                                 break;
                             case 'deletePolicy':
                                 console.log('🗑️ Calling deletePolicy function...');
@@ -7788,7 +7832,7 @@ contact@vigagency.com`;
             }
         };
 
-        function closeEditPolicyModal() {
+        function closeEditPolicyModal(clearEditingId = false) {
             const modal = document.getElementById('editPolicyModal');
             modal.classList.remove('active');
 
@@ -7804,7 +7848,10 @@ contact@vigagency.com`;
                 }
             }
 
-            window.currentEditingPolicyId = null;
+            // Only clear editing ID when explicitly requested (after successful save)
+            if (clearEditingId) {
+                window.currentEditingPolicyId = null;
+            }
         }
 
         // Handle edit policy form submission
@@ -7857,16 +7904,21 @@ contact@vigagency.com`;
             }
 
             try {
+                console.log('💾 Updating policy:', window.currentEditingPolicyId, 'with data:', updatedData);
+
                 // Update in database
                 window.policyDB.updatePolicy(window.currentEditingPolicyId, updatedData);
+
+                // Show success message
+                alert(`Policy updated successfully!\n\nPolicy: ${updatedData.insured_name}\nCarrier: ${updatedData.carrier}`);
 
                 // Refresh display
                 window.allPolicies = window.policyDB.getAllPolicies();
                 window.applyFilters();
                 window.updateAdminStats();
 
-                // Close modal
-                closeEditPolicyModal();
+                // Close modal and clear editing ID
+                closeEditPolicyModal(true);
             } catch (error) {
                 console.error('Error updating policy:', error);
                 alert('Error updating policy. Please try again.');
