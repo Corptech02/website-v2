@@ -5332,6 +5332,12 @@ contact@vigagency.com`;
                 if (coverage.non_trucking_liability) {
                     document.getElementById('editNonTruckingLiability').value = coverage.non_trucking_liability;
                 }
+                if (coverage.non_owned_trailer) {
+                    document.getElementById('editNonOwnedTrailer').value = coverage.non_owned_trailer;
+                }
+                if (coverage.non_owned_trailer_deductible) {
+                    document.getElementById('editNonOwnedTrailerDeductible').value = coverage.non_owned_trailer_deductible;
+                }
 
                 // Legacy support for existing data structure
                 if (coverage.auto_liability) {
@@ -7779,6 +7785,26 @@ contact@vigagency.com`;
                                     <option value="$1,000,000">$1,000,000</option>
                                 </select>
                             </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #374151;">Non Owned Trailer</label>
+                                <select id="editNonOwnedTrailer" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                    <option value="">Select Limit</option>
+                                    <option value="$25,000">$25,000</option>
+                                    <option value="$50,000">$50,000</option>
+                                    <option value="$75,000">$75,000</option>
+                                    <option value="$100,000">$100,000</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #374151;">Non Owned Trailer Deductible</label>
+                                <select id="editNonOwnedTrailerDeductible" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                    <option value="">Select Deductible</option>
+                                    <option value="$500">$500</option>
+                                    <option value="$1,000">$1,000</option>
+                                    <option value="$2,500">$2,500</option>
+                                    <option value="$5,000">$5,000</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7926,7 +7952,9 @@ contact@vigagency.com`;
                 medical_payments: document.getElementById('editMedicalPayments').value,
                 uninsured_motorist: document.getElementById('editUninsuredMotorist').value,
                 trailer_interchange: document.getElementById('editTrailerInterchange').value,
-                non_trucking_liability: document.getElementById('editNonTruckingLiability').value
+                non_trucking_liability: document.getElementById('editNonTruckingLiability').value,
+                non_owned_trailer: document.getElementById('editNonOwnedTrailer').value,
+                non_owned_trailer_deductible: document.getElementById('editNonOwnedTrailerDeductible').value
             };
 
             // Only include non-empty coverage values
