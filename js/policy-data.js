@@ -120,14 +120,22 @@ class PolicyDataManager {
             console.log('🔍 getAllPolicies: Response data:', data);
 
             // Handle both response formats: direct array or {success, policies} object
+            console.log('🔍 getAllPolicies: Checking data format...');
+            console.log('🔍 getAllPolicies: data is array?', Array.isArray(data));
+            console.log('🔍 getAllPolicies: data type:', typeof data);
+            console.log('🔍 getAllPolicies: data keys:', data && typeof data === 'object' ? Object.keys(data) : 'N/A');
+
             if (Array.isArray(data)) {
                 console.log('🔍 getAllPolicies: Returning array of', data.length, 'policies');
                 return data;
-            } else if (data.success && data.policies) {
+            } else if (data && data.success && data.policies) {
                 console.log('🔍 getAllPolicies: Returning object.policies with', data.policies.length, 'policies');
                 return data.policies;
             } else {
-                console.warn('🔍 getAllPolicies: Unexpected response format from /api/policies:', data);
+                console.warn('🔍 getAllPolicies: Unexpected response format from /api/policies:');
+                console.warn('  - data:', data);
+                console.warn('  - data.success:', data?.success);
+                console.warn('  - data.policies:', data?.policies);
                 return [];
             }
         } catch (error) {
@@ -280,7 +288,19 @@ class PolicyDataManager {
     async getUserPolicies(policyNumber) {
         try {
             const policies = await this.getAllPolicies();
-            return policies.filter(p => p.policy_number === policyNumber);
+            console.log('🔍 getUserPolicies: Looking for policy number:', policyNumber);
+            console.log('🔍 getUserPolicies: Total policies to search:', policies.length);
+
+            const matchingPolicies = policies.filter(p => {
+                const matches = p.policy_number === policyNumber || p.id === policyNumber;
+                if (matches) {
+                    console.log('✅ getUserPolicies: Found matching policy:', p.policy_number || p.id);
+                }
+                return matches;
+            });
+
+            console.log('🔍 getUserPolicies: Found', matchingPolicies.length, 'matching policies');
+            return matchingPolicies;
         } catch (error) {
             console.error('❌ Error fetching user policies:', error);
             return [];

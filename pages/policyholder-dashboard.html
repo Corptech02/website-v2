@@ -529,7 +529,7 @@
     </footer>
 
     <script src="../js/main.js?v=20251220"></script>
-    <script src="../js/policy-data.js?v=20251220"></script>
+    <script src="../js/policy-data.js?v=20251228-debug3"></script>
     <script>
         console.log('Dashboard loaded - Version 2.0 with test mode support');
         const API_BASE_URL = ''; // Use same ngrok domain (proxy forwards to API server)
@@ -786,13 +786,51 @@
             policiesContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fas fa-spinner fa-spin" style="font-size: 32px;"></i><p style="margin-top: 20px;">Loading your policies...</p></div>';
 
             try {
+                // Wait for policy database to be ready if it doesn't exist yet
+                if (!window.policyDB) {
+                    console.log('⏳ Waiting for PolicyDataManager to initialize...');
+                    let attempts = 0;
+                    while (!window.policyDB && attempts < 50) { // Wait up to 5 seconds
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        attempts++;
+                    }
+                    if (!window.policyDB) {
+                        throw new Error('PolicyDataManager failed to initialize');
+                    }
+                    console.log('✅ PolicyDataManager ready after', attempts * 100, 'ms');
+                }
+
+                // Policy data will be loaded via await calls below
+
+                // Debug policy database state
+                console.log('🔍 Debug PolicyDB state:');
+                console.log('  - policyDB exists:', !!window.policyDB);
+                console.log('  - getUserPolicies exists:', !!window.policyDB?.getUserPolicies);
+                console.log('  - Looking for policy number:', policyNumber);
+
                 // Get user's policies from client-side database
-                const userPolicies = window.policyDB.getUserPolicies(policyNumber);
-                console.log('Found policies:', userPolicies.length);
+                const userPolicies = await window.policyDB.getUserPolicies(policyNumber);
+                console.log('Found policies:', userPolicies ? userPolicies.length : userPolicies);
+
+                // Additional debug info
+                if (window.policyDB && window.policyDB.getAllPolicies) {
+                    const allPolicies = await window.policyDB.getAllPolicies();
+                    console.log('📊 All policies in database:', allPolicies ? allPolicies.length : allPolicies);
+                    if (allPolicies && allPolicies.length > 0) {
+                        console.log('🔍 Sample policy structure:', allPolicies[0]);
+                        console.log('🔍 Sample policy keys:', Object.keys(allPolicies[0]));
+                        const matching = allPolicies.filter(p => p.policy_number === policyNumber || p.id === policyNumber);
+                        console.log('📋 Policies matching', policyNumber + ':', matching.length);
+                        if (matching.length > 0) {
+                            console.log('🔍 Matching policy structure:', matching[0]);
+                            console.log('🔍 Matching policy keys:', Object.keys(matching[0]));
+                        }
+                    }
+                }
 
                 // Update header with user name (get from localStorage or policy data)
                 let displayName = userName;
-                if (!displayName && userPolicies.length > 0) {
+                if (!displayName && userPolicies && userPolicies.length > 0) {
                     displayName = userPolicies[0].insured_name;
                     console.log('Using policy name as fallback:', displayName);
                 }
@@ -803,7 +841,7 @@
                     console.warn('No user name found in localStorage or policies');
                 }
 
-                if (userPolicies.length > 0) {
+                if (userPolicies && userPolicies.length > 0) {
                     // Client-side data banner removed per user request
 
                     // Simulate loading delay for better UX
@@ -910,9 +948,9 @@
                 <div class="policy-card-header">
                     <div>
                         <h3 class="policy-type"><i class="fas ${icon}"></i> Commercial Auto Insurance</h3>
-                        <div class="policy-number">Policy #: ${policy.policy_number || 'N/A'}</div>
+                        <div class="policy-number">Policy #: ${policy.policyNumber || policy.policy_number || 'N/A'}</div>
                     </div>
-                    <span class="policy-status ${policy.status === 'Active' ? 'active' : 'pending'}">${policy.status || 'Active'}</span>
+                    <span class="policy-status ${(policy.policyStatus || policy.status) === 'Active' ? 'active' : 'pending'}">${policy.policyStatus || policy.status || 'Active'}</span>
                 </div>
                 <div class="policy-details">
                     <div class="policy-detail">
@@ -921,15 +959,15 @@
                     </div>
                     <div class="policy-detail">
                         <div class="policy-detail-label">Effective Date</div>
-                        <div class="policy-detail-value">${formatDate(policy.effective_date)}</div>
+                        <div class="policy-detail-value">${formatDate(policy.effectiveDate || policy.effective_date)}</div>
                     </div>
                     <div class="policy-detail">
                         <div class="policy-detail-label">Expiration Date</div>
-                        <div class="policy-detail-value">${formatDate(policy.expiration_date)}</div>
+                        <div class="policy-detail-value">${formatDate(policy.expirationDate || policy.expiration_date)}</div>
                     </div>
                 </div>
                 <div class="policy-actions">
-                    <button class="policy-btn primary" onclick="emailCOI('${policy.id}', '${policy.policy_number}')">
+                    <button class="policy-btn primary" onclick="emailCOI('${policy.id}', '${policy.policyNumber || policy.policy_number}')">
                         <i class="fas fa-envelope"></i> Email COI
                     </button>
                     <button class="policy-btn secondary" onclick="viewCurrentCOI('${policy.id}')">
@@ -956,20 +994,359 @@
         }
 
         // View COI functionality for client dashboard
-        window.viewCurrentCOI = function(policyId) {
-            // Get policy from client-side database
-            const policy = window.policyDB.getAllPolicies().find(p => p.id === policyId);
-            if (!policy) {
-                alert('Policy not found!');
+        window.viewCurrentCOI = async function(policyId) {
+            console.log('🔍 Client viewCurrentCOI called for policy:', policyId);
+
+            let policy;
+            try {
+                // Get policy from client-side database (await the async call)
+                const allPolicies = await window.policyDB.getAllPolicies();
+                console.log('🔍 viewCurrentCOI: getAllPolicies returned:', allPolicies);
+
+                if (!allPolicies || !Array.isArray(allPolicies)) {
+                    console.error('❌ viewCurrentCOI: getAllPolicies did not return an array:', allPolicies);
+                    alert('Error loading policy data. Please refresh the page.');
+                    return;
+                }
+
+                policy = allPolicies.find(p => p.id === policyId);
+                if (!policy) {
+                    console.error('❌ viewCurrentCOI: Policy not found with ID:', policyId);
+                    alert('Policy not found!');
+                    return;
+                }
+            } catch (error) {
+                console.error('❌ viewCurrentCOI: Error loading policy:', error);
+                alert('Error loading policy data. Please refresh the page.');
                 return;
             }
 
-            console.log('Button clicked: viewCurrentCOI Policy:', policyId);
+            console.log('📋 Found policy:', policy.policyNumber || policy.policy_number);
 
-            // Check if there's a saved COI for this policy
+            // First check if COI documents exist in the policy data structure (like admin dashboard)
+            if (policy.coiDocuments && policy.coiDocuments.length > 0) {
+                console.log('✅ Found COI documents in policy data:', policy.coiDocuments.length);
+                const coiDoc = policy.coiDocuments[0];
+
+                // Create modal to display the actual COI image
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+
+                const img = document.createElement('img');
+                img.src = coiDoc.dataUrl;
+                img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);';
+
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '×';
+                closeBtn.style.cssText = 'position: absolute; top: 20px; right: 30px; background: white; border: none; font-size: 30px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10001;';
+                closeBtn.onclick = () => {
+                    if (modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
+                };
+
+                modal.appendChild(img);
+                modal.appendChild(closeBtn);
+                modal.onclick = (e) => {
+                    if (e.target === modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
+                };
+
+                document.body.appendChild(modal);
+                return;
+            } else {
+                // If no COI documents in client policy, fetch from admin side using policy number
+                const lookingFor = policy.policyNumber || policy.policy_number;
+                console.log('🔄 No COI in client data, checking admin data for policy:', lookingFor);
+
+                try {
+                    // Try to access admin policies the same way admin dashboard does
+                    let adminPolicies = [];
+
+                    // First try to access window.allPolicies if it exists (admin context)
+                    if (typeof window !== 'undefined' && window.allPolicies && Array.isArray(window.allPolicies)) {
+                        adminPolicies = window.allPolicies;
+                        console.log('🔍 Using window.allPolicies from admin context:', adminPolicies.length, 'policies');
+                    } else {
+                        // Fallback to API fetch
+                        console.log('🔍 window.allPolicies not available, fetching from API...');
+                        const adminResponse = await fetch('/api/policies');
+                        const adminData = await adminResponse.json();
+                        adminPolicies = Array.isArray(adminData) ? adminData : (adminData.policies || []);
+                    }
+
+                    console.log('🔍 Checking admin policies for COI data. Found', adminPolicies.length, 'admin policies');
+
+                    // Debug admin policies structure
+                    if (adminPolicies.length > 0) {
+                        console.log('🔍 Sample admin policy structure:', adminPolicies[0]);
+                        console.log('🔍 Sample admin policy keys:', Object.keys(adminPolicies[0]));
+                    }
+
+                    // Find matching admin policy
+                    console.log('🔍 Looking for policy number in admin data:', lookingFor);
+
+                    // Check ALL policies thoroughly for any COI-related data
+                    let foundAnyWithCOI = false;
+                    adminPolicies.forEach((p, index) => {
+                        const policyId = p.policy_number || p.policyNumber || p.id;
+                        const hasMatch = policyId === lookingFor || policyId === `policy-${lookingFor}`;
+                        const hasCOI = p.coiDocuments && p.coiDocuments.length > 0;
+
+                        if (hasCOI) {
+                            foundAnyWithCOI = true;
+                            console.log(`🎯 FOUND POLICY WITH COI! Admin policy ${index}:`, {
+                                policyId,
+                                hasMatch,
+                                coiDocsCount: p.coiDocuments?.length || 0
+                            });
+                        }
+
+                        // Debug ALL fields that might contain COI data for matching policies
+                        if (hasMatch) {
+                            console.log(`🔍 DETAILED DEBUG for matching policy ${index}:`, {
+                                policyId,
+                                coiDocuments: p.coiDocuments,
+                                documents: p.documents,
+                                allKeys: Object.keys(p),
+                                hasCoiField: 'coiDocuments' in p,
+                                hasDocsField: 'documents' in p
+                            });
+
+                            // Check every property for anything that might be COI-related
+                            Object.keys(p).forEach(key => {
+                                if (key.toLowerCase().includes('coi') || key.toLowerCase().includes('doc') || key.toLowerCase().includes('cert')) {
+                                    console.log(`🔍 Potential COI field "${key}":`, p[key]);
+                                }
+                            });
+                        }
+
+                        if (hasMatch || hasCOI) {
+                            console.log(`🔍 Admin policy ${index}:`, {
+                                policyId,
+                                hasMatch,
+                                hasCOI,
+                                coiDocsCount: p.coiDocuments?.length || 0,
+                                hasDocuments: !!p.documents,
+                                documentsType: typeof p.documents
+                            });
+
+                            // Also check if COI is in documents field
+                            if (p.documents && Object.keys(p.documents).length > 0) {
+                                console.log(`🔍 Admin policy ${index} documents:`, p.documents);
+                            }
+                        }
+                    });
+
+                    if (foundAnyWithCOI) {
+                        console.log('✅ Found at least one policy with COI documents in the admin data!');
+                    } else {
+                        console.log('❌ No policies with COI documents found in admin data');
+                    }
+
+                    // Try multiple matching strategies
+                    let adminPolicy = adminPolicies.find(p => {
+                        const policyId = p.policy_number || p.policyNumber || p.id || '';
+                        return policyId === lookingFor ||
+                               policyId === `policy-${lookingFor}` ||
+                               policyId.includes(lookingFor);
+                    });
+
+                    // If no match found, but we know COI exists, try to find ANY policy with COI that contains our policy number
+                    if (!adminPolicy || !adminPolicy.coiDocuments) {
+                        console.log('🔍 No direct match found, searching for any policy with COI containing our policy number...');
+                        adminPolicy = adminPolicies.find(p => {
+                            if (!p.coiDocuments || p.coiDocuments.length === 0) return false;
+
+                            const policyId = p.policy_number || p.policyNumber || p.id || '';
+                            const coiDoc = p.coiDocuments[0];
+
+                            // Check if policy ID contains our number or COI name contains our number
+                            const policyMatches = policyId && policyId.includes(lookingFor);
+                            const coiMatches = coiDoc.name && coiDoc.name.includes(lookingFor);
+
+                            if (policyMatches || coiMatches) {
+                                console.log('🎯 Found COI match!', {
+                                    policyId,
+                                    coiName: coiDoc.name,
+                                    policyMatches,
+                                    coiMatches
+                                });
+                                return true;
+                            }
+                            return false;
+                        });
+                    }
+
+                    console.log('🔍 Found matching admin policy:', !!adminPolicy);
+                    if (adminPolicy) {
+                        console.log('🔍 Admin policy COI documents:', adminPolicy.coiDocuments?.length || 0);
+                        console.log('🔍 Admin policy documents field:', adminPolicy.documents);
+                        console.log('🔍 Admin policy keys:', Object.keys(adminPolicy));
+                    }
+
+                    // Check for COI in coiDocuments field
+                    if (adminPolicy && adminPolicy.coiDocuments && adminPolicy.coiDocuments.length > 0) {
+                        console.log('✅ Found COI in admin policy data!');
+                        const coiDoc = adminPolicy.coiDocuments[0];
+
+                        // Create modal to display the actual COI image
+                        const modal = document.createElement('div');
+                        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+
+                        const img = document.createElement('img');
+                        img.src = coiDoc.dataUrl;
+                        img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);';
+
+                        const closeBtn = document.createElement('button');
+                        closeBtn.innerHTML = '×';
+                        closeBtn.style.cssText = 'position: absolute; top: 20px; right: 30px; background: white; border: none; font-size: 30px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10001;';
+                        closeBtn.onclick = () => {
+                            if (modal && modal.parentNode) {
+                                modal.parentNode.removeChild(modal);
+                            }
+                        };
+
+                        modal.appendChild(img);
+                        modal.appendChild(closeBtn);
+                        modal.onclick = (e) => {
+                            if (e.target === modal && modal.parentNode) {
+                                modal.parentNode.removeChild(modal);
+                            }
+                        };
+
+                        document.body.appendChild(modal);
+                        return;
+                    } else if (adminPolicy && adminPolicy.documents) {
+                        // Check if COI is stored in documents field
+                        console.log('🔍 Checking documents field for COI...');
+                        let coiDoc = null;
+
+                        // documents might be an array or object with COI data
+                        if (Array.isArray(adminPolicy.documents)) {
+                            coiDoc = adminPolicy.documents.find(doc => doc.type === 'coi' || doc.name?.includes('ACORD') || doc.name?.includes('COI'));
+                        } else if (adminPolicy.documents && typeof adminPolicy.documents === 'object') {
+                            // Check for COI in object properties
+                            Object.keys(adminPolicy.documents).forEach(key => {
+                                const doc = adminPolicy.documents[key];
+                                if (doc && (doc.type === 'coi' || doc.name?.includes('ACORD') || doc.name?.includes('COI'))) {
+                                    coiDoc = doc;
+                                }
+                            });
+                        }
+
+                        if (coiDoc && coiDoc.dataUrl) {
+                            console.log('✅ Found COI in documents field!');
+
+                            // Create modal to display the actual COI image
+                            const modal = document.createElement('div');
+                            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+
+                            const img = document.createElement('img');
+                            img.src = coiDoc.dataUrl;
+                            img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);';
+
+                            const closeBtn = document.createElement('button');
+                            closeBtn.innerHTML = '×';
+                            closeBtn.style.cssText = 'position: absolute; top: 20px; right: 30px; background: white; border: none; font-size: 30px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10001;';
+                            closeBtn.onclick = () => {
+                                if (modal && modal.parentNode) {
+                                    modal.parentNode.removeChild(modal);
+                                }
+                            };
+
+                            modal.appendChild(img);
+                            modal.appendChild(closeBtn);
+                            modal.onclick = (e) => {
+                                if (e.target === modal && modal.parentNode) {
+                                    modal.parentNode.removeChild(modal);
+                                }
+                            };
+
+                            document.body.appendChild(modal);
+                            return;
+                        } else {
+                            console.log('❌ No COI found in documents field either');
+                        }
+                    } else {
+                        console.log('❌ No COI found in admin policy data either');
+                    }
+                } catch (error) {
+                    console.error('❌ Error fetching admin policy data:', error);
+                }
+
+                // If all else fails, try to fetch COI directly using different COI endpoints
+                try {
+                    console.log('🔄 Trying direct COI fetch for policy:', lookingFor);
+
+                    // Try multiple possible COI endpoints
+                    const possibleEndpoints = [
+                        `/api/coi/${lookingFor}`,
+                        `/api/get-coi-form/${lookingFor}`,
+                        `/api/policies/${lookingFor}/coi`,
+                        `/api/policies/policy-${lookingFor}/coi`
+                    ];
+
+                    let coiData = null;
+                    for (const endpoint of possibleEndpoints) {
+                        try {
+                            console.log('🔄 Trying endpoint:', endpoint);
+                            const coiResponse = await fetch(endpoint);
+                            if (coiResponse.ok) {
+                                coiData = await coiResponse.json();
+                                console.log('✅ Found COI via endpoint:', endpoint, coiData);
+                                break;
+                            } else {
+                                console.log('❌ Endpoint failed:', endpoint, coiResponse.status);
+                            }
+                        } catch (e) {
+                            console.log('❌ Endpoint error:', endpoint, e.message);
+                        }
+                    }
+
+                    if (coiData && coiData.dataUrl) {
+                            // Create modal to display the COI image
+                            const modal = document.createElement('div');
+                            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+
+                            const img = document.createElement('img');
+                            img.src = coiData.dataUrl;
+                            img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);';
+
+                            const closeBtn = document.createElement('button');
+                            closeBtn.innerHTML = '×';
+                            closeBtn.style.cssText = 'position: absolute; top: 20px; right: 30px; background: white; border: none; font-size: 30px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10001;';
+                            closeBtn.onclick = () => {
+                                if (modal && modal.parentNode) {
+                                    modal.parentNode.removeChild(modal);
+                                }
+                            };
+
+                            modal.appendChild(img);
+                            modal.appendChild(closeBtn);
+                            modal.onclick = (e) => {
+                                if (e.target === modal && modal.parentNode) {
+                                    modal.parentNode.removeChild(modal);
+                                }
+                            };
+
+                            document.body.appendChild(modal);
+                            return;
+                        } else {
+                        console.log('❌ All COI endpoints failed');
+                    }
+                } catch (error) {
+                    console.log('❌ Direct COI fetch failed:', error.message);
+                }
+            }
+
+            // Fallback: Check if there's a saved COI for this policy in localStorage
+            console.log('🔍 No COI documents in policy data, checking localStorage...');
             const savedCOI = localStorage.getItem(`coi_data_${policyId}`);
 
             if (!savedCOI) {
+                console.log('❌ No COI found in localStorage either');
                 alert('No COI document found for this policy.\n\nThe COI will be available after your agent generates one.');
                 return;
             }
