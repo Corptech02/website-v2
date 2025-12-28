@@ -3816,13 +3816,14 @@ contact@vigagency.com`;
                 console.log('📋 Checking COI documents:', coiCount);
 
                 if (policy.coiDocuments && policy.coiDocuments.length > 0) {
-                    console.log('✅ COI documents found, calling showCOIModal');
-                    // Show the saved COI document
-                    if (typeof window.showCOIModal === 'function') {
-                        window.showCOIModal(policy);
+                    console.log('✅ COI documents found, calling showCOIViewer');
+                    // Show the saved COI document as an image popup
+                    const coiDoc = policy.coiDocuments[0]; // Get the most recent COI document
+                    if (typeof window.showCOIViewer === 'function') {
+                        window.showCOIViewer(policy, coiDoc);
                     } else {
-                        console.error('❌ showCOIModal function not found');
-                        alert('COI display function not available. Please refresh the page.');
+                        console.error('❌ showCOIViewer function not found');
+                        alert('COI viewer function not available. Please refresh the page.');
                     }
                 } else {
                     console.log('❌ No COI documents found, offering to generate');
@@ -4716,8 +4717,8 @@ contact@vigagency.com`;
                         <button class="policy-btn secondary" data-action="editPolicy" data-policy-id="${policy.id}">
                             <i class="fas fa-edit"></i> Edit Policy
                         </button>
-                        <button class="policy-btn secondary" data-action="viewPolicy" data-policy-id="${policy.id}">
-                            <i class="fas fa-file-alt"></i> View Policy
+                        <button class="policy-btn secondary" data-action="viewCurrentCOI" data-policy-id="${policy.id}">
+                            <i class="fas fa-eye"></i> Current COI
                         </button>
                         <button class="policy-btn danger" data-action="deletePolicy" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}">
                             <i class="fas fa-trash"></i> Delete
@@ -6887,6 +6888,87 @@ contact@vigagency.com`;
                                 console.log('📄 Calling viewPolicy function...');
                                 if (window.viewPolicy) window.viewPolicy(policyId);
                                 else console.error('❌ viewPolicy function not found');
+                                break;
+                            case 'viewCurrentCOI':
+                                console.log('👁️ Calling viewCurrentCOI function...');
+                                console.log('🔍 Debug: window.showCOIViewer exists?', typeof window.showCOIViewer);
+                                console.log('🔍 Debug: window.allPolicies exists?', !!window.allPolicies);
+                                console.log('🔍 Debug: allPolicies length:', window.allPolicies?.length);
+
+                                // Get policy from allPolicies array
+                                if (window.allPolicies && window.allPolicies.length > 0) {
+                                    const policy = window.allPolicies.find(p => p.id === policyId);
+                                    console.log('🔍 Debug: Found policy:', !!policy);
+                                    console.log('🔍 Debug: Policy COI docs:', policy?.coiDocuments?.length);
+
+                                    if (policy && policy.coiDocuments && policy.coiDocuments.length > 0) {
+                                        const coiDoc = policy.coiDocuments[0];
+                                        console.log('🔍 Debug: COI document:', coiDoc);
+
+                                        if (typeof window.showCOIViewer === 'function') {
+                                            console.log('✅ Calling showCOIViewer with policy and coiDoc');
+                                            window.showCOIViewer(policy, coiDoc);
+                                        } else {
+                                            console.log('❌ showCOIViewer function not found, creating simple popup');
+                                            // Create simple COI image popup
+                                            const modal = document.createElement('div');
+                                            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+
+                                            const container = document.createElement('div');
+                                            container.style.cssText = 'background: white; border-radius: 8px; max-width: 90%; max-height: 90%; overflow: auto; position: relative;';
+
+                                            const header = document.createElement('div');
+                                            header.style.cssText = 'padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;';
+
+                                            const title = document.createElement('h3');
+                                            title.style.cssText = 'margin: 0;';
+                                            title.textContent = 'Current COI - Policy ' + policy.policy_number;
+
+                                            const closeBtn = document.createElement('button');
+                                            closeBtn.style.cssText = 'background: none; border: none; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;';
+                                            closeBtn.innerHTML = '&times;';
+                                            closeBtn.onclick = function() {
+                                                console.log('🔘 Close button clicked - removing modal');
+                                                if (modal && modal.parentNode) {
+                                                    modal.parentNode.removeChild(modal);
+                                                }
+                                            };
+
+                                            header.appendChild(title);
+                                            header.appendChild(closeBtn);
+
+                                            const content = document.createElement('div');
+                                            content.style.cssText = 'padding: 20px; text-align: center;';
+
+                                            const img = document.createElement('img');
+                                            img.src = coiDoc.dataUrl;
+                                            img.style.cssText = 'max-width: 100%; max-height: 70vh; border: 1px solid #ddd;';
+                                            img.alt = 'COI Document';
+                                            content.appendChild(img);
+
+                                            container.appendChild(header);
+                                            container.appendChild(content);
+                                            modal.appendChild(container);
+                                            document.body.appendChild(modal);
+
+                                            // Close on background click
+                                            modal.addEventListener('click', function(e) {
+                                                if (e.target === modal) {
+                                                    console.log('🔘 Background clicked - removing modal');
+                                                    if (modal && modal.parentNode) {
+                                                        modal.parentNode.removeChild(modal);
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        console.log('❌ No COI document found');
+                                        alert('No COI document found for this policy.');
+                                    }
+                                } else {
+                                    console.log('❌ Policy data not loaded');
+                                    alert('Policy data not loaded. Please refresh the page.');
+                                }
                                 break;
                             case 'deletePolicy':
                                 console.log('🗑️ Calling deletePolicy function...');
