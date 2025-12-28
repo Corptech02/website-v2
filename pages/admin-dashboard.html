@@ -3787,17 +3787,24 @@ contact@vigagency.com`;
         // Essential window functions for policy management
         window.viewPolicy = function(policyId) {
             console.log('📄 viewPolicy called with:', policyId);
+            console.log('🔍 Searching in window.allPolicies:', !!window.allPolicies, window.allPolicies?.length);
+
             const policy = window.allPolicies.find(p => p.id === policyId);
+            console.log('🎯 Policy found:', !!policy, policy?.policy_number);
+
             if (!policy) {
                 alert('Policy not found!');
                 return;
             }
 
             // Check if there's a saved COI document for this policy
+            console.log('📋 Checking COI documents:', policy.coiDocuments?.length || 0);
             if (policy.coiDocuments && policy.coiDocuments.length > 0) {
+                console.log('✅ COI documents found, calling showCOIModal');
                 // Show the saved COI document
                 window.showCOIModal(policy);
             } else {
+                console.log('❌ No COI documents found, offering to generate');
                 // No COI found, offer to generate one
                 if (confirm('No COI document found for this policy. Would you like to generate one?')) {
                     window.generateCOI(policyId, policy.policy_number);
