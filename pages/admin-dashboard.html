@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
 
     <!-- Load policy database FIRST -->
-    <script src="/js/policy-data.js"></script>
+    <script src="/js/policy-data.js?v=1766948746-filter-fix"></script>
 
     <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251221');</script>
     <!-- CACHE BUSTER: 20251221-FIXED -->
@@ -4393,7 +4393,7 @@ contact@vigagency.com`;
             if (modal) modal.classList.remove('active');
         };
 
-        window.generateCOI = function(policyId, policyNumber) {
+        window.generateCOI = async function(policyId, policyNumber) {
             console.log('🔄 DIRECT generateCOI called with:', policyId, policyNumber);
 
             // Ensure policies are loaded
@@ -4412,15 +4412,21 @@ contact@vigagency.com`;
             console.log('✅ Found policy for COI generation:', policy);
 
             // IMPORTANT: Get fresh policy data from database to include any recent edits
-            const freshPolicy = window.policyDB ? window.policyDB.getPolicyById(policyId) : policy;
+            const freshPolicy = window.policyDB ? await window.policyDB.getPolicyById(policyId) : policy;
             console.log('🔄 Using fresh policy data for COI generation:', freshPolicy);
 
             // Use the existing showCOIModal function with fresh data
+            console.log('🔍 Checking showCOIModal availability:', typeof window.showCOIModal);
             if (typeof window.showCOIModal === 'function') {
                 console.log('📝 Calling showCOIModal function with fresh policy data');
                 window.showCOIModal(freshPolicy);
             } else {
-                console.error('❌ showCOIModal function not found');
+                console.error('❌ showCOIModal function not found, using createRealACORDViewer directly');
+                if (typeof window.createRealACORDViewer === 'function') {
+                    window.createRealACORDViewer(freshPolicy.policy_number, freshPolicy);
+                } else {
+                    console.error('❌ Neither showCOIModal nor createRealACORDViewer found');
+                }
             }
         };
 
@@ -8892,7 +8898,7 @@ contact@vigagency.com`;
             }
         }
 
-        function saveFilledACORD() {
+        async function saveFilledACORD() {
             console.log('💾 Saving ACORD form to client profile...');
 
             // Get the current policy data
@@ -9009,7 +9015,7 @@ contact@vigagency.com`;
 
             // Create a data URL from the form data (for local storage)
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const coiDocument = {
                     id: 'coi-' + Date.now(),
                     name: fileName,
@@ -9025,10 +9031,10 @@ contact@vigagency.com`;
 
                 // Save back to database
                 console.log('💾 Saving COI to policy:', policyId, 'COI doc:', coiDocument);
-                window.policyDB.updatePolicy(policyId, { coiDocuments: policy.coiDocuments });
+                await window.policyDB.updatePolicy(policyId, { coiDocuments: policy.coiDocuments });
 
                 // Verify the save worked
-                const updatedPolicy = window.policyDB.getPolicyById(policyId);
+                const updatedPolicy = await window.policyDB.getPolicyById(policyId);
                 console.log('✅ Verification - policy after save:', updatedPolicy?.policy_number, 'COI docs:', updatedPolicy?.coiDocuments?.length);
 
                 console.log('✅ ACORD form saved to policy');

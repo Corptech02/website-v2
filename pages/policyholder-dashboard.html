@@ -529,7 +529,7 @@
     </footer>
 
     <script src="../js/main.js?v=20251220"></script>
-    <script src="../js/policy-data.js?v=20251228-debug3"></script>
+    <script src="../js/policy-data.js?v=1766948746-filter-fix"></script>
     <script>
         console.log('Dashboard loaded - Version 2.0 with test mode support');
         const API_BASE_URL = ''; // Use same ngrok domain (proxy forwards to API server)
@@ -913,7 +913,7 @@
                         <button class="policy-btn primary" onclick="emailCOI('${policy.id}', '${policy.policy_number}')">
                             <i class="fas fa-envelope"></i> Email COI
                         </button>
-                        <button class="policy-btn secondary" onclick="viewCurrentCOI('${policy.id}')">
+                        <button class="policy-btn secondary" onclick="viewCurrentCOI_DEBUG('${policy.id}')">
                             <i class="fas fa-file-pdf"></i> View COI
                         </button>
                     </div>
@@ -970,7 +970,7 @@
                     <button class="policy-btn primary" onclick="emailCOI('${policy.id}', '${policy.policyNumber || policy.policy_number}')">
                         <i class="fas fa-envelope"></i> Email COI
                     </button>
-                    <button class="policy-btn secondary" onclick="viewCurrentCOI('${policy.id}')">
+                    <button class="policy-btn secondary" onclick="viewCurrentCOI_DEBUG('${policy.id}')">
                         <i class="fas fa-file-pdf"></i> View COI
                     </button>
                 </div>
@@ -994,14 +994,18 @@
         }
 
         // View COI functionality for client dashboard
-        window.viewCurrentCOI = async function(policyId) {
-            console.log('🔍 Client viewCurrentCOI called for policy:', policyId);
+        window.viewCurrentCOI_DEBUG = async function(policyId) {
+            alert('🚨 COI DEBUG FUNCTION CALLED WITH POLICY ID: ' + policyId);
+            console.log('🚨🚨🚨 FUNCTION START - policyId:', policyId);
+            console.log('🚨 CLIENT COI DEBUG FUNCTION CALLED WITH ID:', policyId);
+            console.log('🔍 Client viewCurrentCOI_DEBUG called for policy:', policyId);
 
             let policy;
             try {
                 // Get policy from client-side database (await the async call)
                 const allPolicies = await window.policyDB.getAllPolicies();
-                console.log('🔍 viewCurrentCOI: getAllPolicies returned:', allPolicies);
+                console.log('🔍 viewCurrentCOI: getAllPolicies returned:', allPolicies?.length, 'policies');
+                console.log('🔍 viewCurrentCOI: Sample policy structure:', allPolicies?.[0]);
 
                 if (!allPolicies || !Array.isArray(allPolicies)) {
                     console.error('❌ viewCurrentCOI: getAllPolicies did not return an array:', allPolicies);
@@ -1009,9 +1013,30 @@
                     return;
                 }
 
-                policy = allPolicies.find(p => p.id === policyId);
+                // Debug: Check all policies for COI data
+                console.log('🔍 Checking all policies for COI documents...');
+                allPolicies.forEach((p, index) => {
+                    const hasCoiDocs = p.coiDocuments && p.coiDocuments.length > 0;
+                    console.log(`Policy ${index}:`, {
+                        id: p.id,
+                        policy_number: p.policy_number,
+                        policyNumber: p.policyNumber,
+                        hasCoiDocs,
+                        coiDocsCount: p.coiDocuments?.length || 0
+                    });
+                });
+
+                policy = allPolicies.find(p => p.id === policyId || p.policy_number === policyId || p.policyNumber === policyId);
+                console.log('🔍 Found matching policy:', !!policy, policy ? {
+                    id: policy.id,
+                    policy_number: policy.policy_number,
+                    policyNumber: policy.policyNumber,
+                    hasCoiDocs: !!(policy.coiDocuments && policy.coiDocuments.length > 0)
+                } : null);
+
                 if (!policy) {
-                    console.error('❌ viewCurrentCOI: Policy not found with ID:', policyId);
+                    console.error('❌ viewCurrentCOI: Policy not found with ID/number:', policyId);
+                    console.log('🔍 Available policies:', allPolicies.map(p => ({id: p.id, policy_number: p.policy_number, policyNumber: p.policyNumber})));
                     alert('Policy not found!');
                     return;
                 }
@@ -1145,13 +1170,27 @@
                         console.log('❌ No policies with COI documents found in admin data');
                     }
 
-                    // Try multiple matching strategies
+                    // Try multiple matching strategies - prioritize the working admin format
                     let adminPolicy = adminPolicies.find(p => {
+                        // Match by policy_number field (this is what admin uses: policy_number: '864709702')
+                        if ((p.policy_number || p.policyNumber) === lookingFor) {
+                            return true;
+                        }
+                        // Match by ID with or without policy- prefix
+                        if (p.id === lookingFor || p.id === `policy-${lookingFor}`) {
+                            return true;
+                        }
+                        // Fallback: check if either field contains our number
                         const policyId = p.policy_number || p.policyNumber || p.id || '';
-                        return policyId === lookingFor ||
-                               policyId === `policy-${lookingFor}` ||
-                               policyId.includes(lookingFor);
+                        return policyId === lookingFor || policyId.includes(lookingFor);
                     });
+
+                    console.log('🔍 Found matching admin policy:', !!adminPolicy, adminPolicy ? {
+                        id: adminPolicy.id,
+                        policy_number: adminPolicy.policy_number,
+                        policyNumber: adminPolicy.policyNumber,
+                        hasCOI: !!(adminPolicy.coiDocuments && adminPolicy.coiDocuments.length > 0)
+                    } : null);
 
                     // If no match found, but we know COI exists, try to find ANY policy with COI that contains our policy number
                     if (!adminPolicy || !adminPolicy.coiDocuments) {

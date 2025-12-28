@@ -126,8 +126,34 @@ class PolicyDataManager {
             console.log('🔍 getAllPolicies: data keys:', data && typeof data === 'object' ? Object.keys(data) : 'N/A');
 
             if (Array.isArray(data)) {
-                console.log('🔍 getAllPolicies: Returning array of', data.length, 'policies');
-                return data;
+                // Normalize corrupted data - some objects might have {policies: [policy]} structure
+                const normalizedPolicies = data.map(item => {
+                    if (item.policies && Array.isArray(item.policies) && item.policies.length > 0) {
+                        console.log('🔧 Normalizing corrupted policy data structure');
+                        return item.policies[0]; // Extract the actual policy from the wrapper
+                    }
+                    return item; // Return as-is if already a direct policy object
+                }).filter(policy => {
+                    // More thorough validation - ensure we have essential policy data
+                    const isValid = policy &&
+                                   (policy.policy_number || policy.policyNumber) &&
+                                   policy.carrier &&
+                                   (policy.insured_name || policy.clientName || policy.insured);
+
+                    if (!isValid && policy) {
+                        console.log('🗑️ Filtering out invalid policy object:', {
+                            id: policy.id,
+                            policy_number: policy.policy_number,
+                            policyNumber: policy.policyNumber,
+                            carrier: policy.carrier,
+                            insured_name: policy.insured_name
+                        });
+                    }
+                    return isValid;
+                }); // Filter out invalid objects
+
+                console.log('🔍 getAllPolicies: Returning normalized array of', normalizedPolicies.length, 'policies');
+                return normalizedPolicies;
             } else if (data && data.success && data.policies) {
                 console.log('🔍 getAllPolicies: Returning object.policies with', data.policies.length, 'policies');
                 return data.policies;
@@ -196,7 +222,21 @@ class PolicyDataManager {
         try {
             // For now, we need to get all policies, update the specific one, and save back
             const policies = await this.getAllPolicies();
-            const policyIndex = policies.findIndex(p => p.id === policyId || p.policy_number === policyId);
+            // Enhanced policy matching - check multiple ID formats and policy number
+            const policyIndex = policies.findIndex(p => {
+                return p.id === policyId ||
+                       p.id === `policy-${policyId}` ||
+                       p.policy_number === policyId ||
+                       p.policyNumber === policyId ||
+                       (p.id && p.id.includes(policyId)) ||
+                       (policyId.includes('policy-') && p.policy_number === policyId.replace('policy-', ''));
+            });
+
+            console.log('🔍 updatePolicy: Looking for policy:', policyId);
+            console.log('🔍 updatePolicy: Found at index:', policyIndex);
+            if (policyIndex !== -1) {
+                console.log('🔍 updatePolicy: Matched policy:', policies[policyIndex].id, policies[policyIndex].policy_number);
+            }
 
             if (policyIndex !== -1) {
                 policies[policyIndex] = { ...policies[policyIndex], ...updates };
