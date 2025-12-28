@@ -3786,11 +3786,12 @@ contact@vigagency.com`;
 
         // Essential window functions for policy management
         window.viewPolicy = function(policyId) {
-            console.log('📄 viewPolicy called with:', policyId);
+            console.log('📄 viewPolicy called with:', policyId, '- VERSION 2025-12-28-FIX');
+            console.log('🔧 DEBUG: Function execution started - LINE 3791');
 
             try {
-                console.log('🔍 Checking window.allPolicies exists:', typeof window.allPolicies);
-                console.log('🔍 window.allPolicies length:', window.allPolicies ? window.allPolicies.length : 'undefined');
+                console.log('🔍 Checking window object:', typeof window);
+                console.log('🔍 Checking allPolicies:', typeof window.allPolicies);
 
                 if (!window.allPolicies) {
                     console.error('❌ window.allPolicies is not defined');
