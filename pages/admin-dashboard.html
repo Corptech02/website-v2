@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
 
     <!-- Load policy database FIRST -->
-    <script src="/js/policy-data.js?v=1766948746-filter-fix"></script>
+    <script src="/js/policy-data.js?v=1766948746-template-display-fix"></script>
 
     <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251221');</script>
     <!-- CACHE BUSTER: 20251221-FIXED -->
@@ -2402,6 +2402,14 @@
                             actualStatus = 'Expiring Soon';
                         }
 
+                        // Handle different field name variations from normalized data
+                        const clientName = policy.insured_name || policy.clientName || policy.insured || 'N/A';
+                        const clientPhone = policy.client_phone || policy.phone || policy.clientPhone || 'N/A';
+                        const clientEmail = policy.client_email || policy.email || policy.clientEmail || 'N/A';
+                        const policyNumber = policy.policy_number || policy.policyNumber || 'N/A';
+                        const effectiveDate = policy.effective_date || policy.effectiveDate || 'N/A';
+                        const expirationDate = policy.expiration_date || policy.expirationDate || 'N/A';
+
                         policyCard.innerHTML = `
                             <div class="policy-card-header">
                                 <div>
@@ -2409,22 +2417,22 @@
                                         <i class="fas ${icon}"></i>
                                         ${policy.type || 'Insurance Policy'}
                                     </h3>
-                                    <div class="policy-number">Policy #: ${policy.policy_number}</div>
+                                    <div class="policy-number">Policy #: ${policyNumber}</div>
                                 </div>
                                 <span class="policy-status ${statusClass}">${actualStatus}</span>
                             </div>
                             <div class="policy-details">
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Client Name</div>
-                                    <div class="policy-detail-value">${policy.insured_name || 'N/A'}</div>
+                                    <div class="policy-detail-value">${clientName}</div>
                                 </div>
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Phone</div>
-                                    <div class="policy-detail-value">${policy.client_phone || 'N/A'}</div>
+                                    <div class="policy-detail-value">${clientPhone}</div>
                                 </div>
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Email</div>
-                                    <div class="policy-detail-value">${policy.client_email || 'N/A'}</div>
+                                    <div class="policy-detail-value">${clientEmail}</div>
                                 </div>
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Carrier</div>
@@ -2436,11 +2444,11 @@
                                 </div>
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Effective Date</div>
-                                    <div class="policy-detail-value">${policy.effective_date}</div>
+                                    <div class="policy-detail-value">${effectiveDate}</div>
                                 </div>
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Expiration Date</div>
-                                    <div class="policy-detail-value">${policy.expiration_date}</div>
+                                    <div class="policy-detail-value">${expirationDate}</div>
                                 </div>
                                 <div class="policy-detail">
                                     <div class="policy-detail-label">Days Until Expiration</div>
@@ -2448,10 +2456,10 @@
                                 </div>
                             </div>
                             <div class="policy-actions">
-                                <button class="policy-btn primary" data-action="generateCOI" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}">
+                                <button class="policy-btn primary" data-action="generateCOI" data-policy-id="${policy.id}" data-policy-number="${policyNumber}">
                                     <i class="fas fa-file-pdf"></i> Generate COI
                                 </button>
-                                <button class="policy-btn send-coi" data-action="sendPolicyCOI" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}" title="Send saved COI document">
+                                <button class="policy-btn send-coi" data-action="sendPolicyCOI" data-policy-id="${policy.id}" data-policy-number="${policyNumber}" title="Send saved COI document">
                                     <i class="fas fa-envelope"></i> Send COI
                                 </button>
                                 <button class="policy-btn secondary" data-action="editPolicy" data-policy-id="${policy.id}">
@@ -4574,7 +4582,7 @@ contact@vigagency.com`;
 
         // Determine agency based on client name
         function getAgencyName(clientName) {
-            if (!clientName) return 'Vanguard'; // Default to Vanguard
+            if (!clientName || typeof clientName !== 'string') return 'Vanguard'; // Default to Vanguard
 
             const client = clientName.toLowerCase();
 
@@ -4665,6 +4673,14 @@ contact@vigagency.com`;
                     actualStatus = 'Expiring Soon';
                 }
 
+                // Handle different field name variations from normalized data
+                const clientName = policy.insured_name || policy.clientName || policy.insured || 'N/A';
+                const clientPhone = policy.client_phone || policy.phone || policy.clientPhone || 'N/A';
+                const clientEmail = policy.client_email || policy.email || policy.clientEmail || 'N/A';
+                const policyNumber = policy.policy_number || policy.policyNumber || 'N/A';
+                const effectiveDate = policy.effective_date || policy.effectiveDate || 'N/A';
+                const expirationDate = policy.expiration_date || policy.expirationDate || 'N/A';
+
                 policyCard.innerHTML = `
                     <div class="policy-card-header">
                         <div>
@@ -4672,22 +4688,22 @@ contact@vigagency.com`;
                                 <i class="fas ${icon}"></i>
                                 ${policy.type || 'Insurance Policy'}
                             </h3>
-                            <div class="policy-number">Policy #: ${policy.policy_number}</div>
+                            <div class="policy-number">Policy #: ${policyNumber}</div>
                         </div>
                         <span class="policy-status ${statusClass}">${actualStatus}</span>
                     </div>
                     <div class="policy-details">
                         <div class="policy-detail">
                             <div class="policy-detail-label">Client Name</div>
-                            <div class="policy-detail-value">${policy.insured_name || 'N/A'}</div>
+                            <div class="policy-detail-value">${clientName}</div>
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Phone</div>
-                            <div class="policy-detail-value">${policy.client_phone || 'N/A'}</div>
+                            <div class="policy-detail-value">${clientPhone}</div>
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Email</div>
-                            <div class="policy-detail-value">${policy.client_email || 'N/A'}</div>
+                            <div class="policy-detail-value">${clientEmail}</div>
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Carrier</div>
@@ -4695,15 +4711,15 @@ contact@vigagency.com`;
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Agency</div>
-                            <div class="policy-detail-value">${policy.agency || getAgencyName(policy.insured_name)}</div>
+                            <div class="policy-detail-value">${policy.agency || getAgencyName(clientName)}</div>
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Effective Date</div>
-                            <div class="policy-detail-value">${formatDate(policy.effective_date)}</div>
+                            <div class="policy-detail-value">${formatDate(effectiveDate)}</div>
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Expiration Date</div>
-                            <div class="policy-detail-value">${formatDate(policy.expiration_date)}</div>
+                            <div class="policy-detail-value">${formatDate(expirationDate)}</div>
                         </div>
                         <div class="policy-detail">
                             <div class="policy-detail-label">Days Until Expiration</div>
@@ -4711,10 +4727,10 @@ contact@vigagency.com`;
                         </div>
                     </div>
                     <div class="policy-actions">
-                        <button class="policy-btn primary" data-action="generateCOI" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}">
+                        <button class="policy-btn primary" data-action="generateCOI" data-policy-id="${policy.id}" data-policy-number="${policyNumber}">
                             <i class="fas fa-file-pdf"></i> Generate COI
                         </button>
-                        <button class="policy-btn send-coi" data-action="sendPolicyCOI" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}" title="Send saved COI document">
+                        <button class="policy-btn send-coi" data-action="sendPolicyCOI" data-policy-id="${policy.id}" data-policy-number="${policyNumber}" title="Send saved COI document">
                             <i class="fas fa-envelope"></i> Send COI
                         </button>
                         <button class="policy-btn secondary" data-action="editPolicy" data-policy-id="${policy.id}">
@@ -4723,7 +4739,7 @@ contact@vigagency.com`;
                         <button class="policy-btn secondary" data-action="viewCurrentCOI" data-policy-id="${policy.id}">
                             <i class="fas fa-eye"></i> Current COI
                         </button>
-                        <button class="policy-btn danger" data-action="deletePolicy" data-policy-id="${policy.id}" data-policy-number="${policy.policy_number}">
+                        <button class="policy-btn danger" data-action="deletePolicy" data-policy-id="${policy.id}" data-policy-number="${policyNumber}">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
