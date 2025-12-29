@@ -119,43 +119,33 @@ class PolicyDataManager {
             const data = await response.json();
             console.log('🔍 getAllPolicies: Response data:', data);
 
-            // Handle both response formats: direct array or {success, policies} object
+            // Handle response formats - now expecting direct array from normalized server
             console.log('🔍 getAllPolicies: Checking data format...');
             console.log('🔍 getAllPolicies: data is array?', Array.isArray(data));
             console.log('🔍 getAllPolicies: data type:', typeof data);
-            console.log('🔍 getAllPolicies: data keys:', data && typeof data === 'object' ? Object.keys(data) : 'N/A');
 
             if (Array.isArray(data)) {
-                // Normalize corrupted data - some objects might have {policies: [policy]} structure
-                const normalizedPolicies = data.map(item => {
-                    if (item.policies && Array.isArray(item.policies) && item.policies.length > 0) {
-                        console.log('🔧 Normalizing corrupted policy data structure');
-                        return item.policies[0]; // Extract the actual policy from the wrapper
-                    }
-                    return item; // Return as-is if already a direct policy object
-                }).filter(policy => {
-                    // More thorough validation - ensure we have essential policy data
-                    const isValid = policy &&
-                                   (policy.policy_number || policy.policyNumber) &&
-                                   policy.carrier &&
-                                   (policy.insured_name || policy.clientName || policy.insured);
+                // Server now returns normalized policies directly
+                console.log('🔍 getAllPolicies: Returning server-normalized array of', data.length, 'policies');
 
-                    if (!isValid && policy) {
-                        console.log('🗑️ Filtering out invalid policy object:', {
+                // Log policy structures for debugging specific policies
+                data.forEach(policy => {
+                    if (policy.id === 'POL966740' || policy.policyNumber === 'POL966740') {
+                        console.log('🚨 CLIENT DEBUG - POL966740 structure from server:', {
                             id: policy.id,
                             policy_number: policy.policy_number,
-                            policyNumber: policy.policyNumber,
-                            carrier: policy.carrier,
-                            insured_name: policy.insured_name
+                            insured_name: policy.insured_name,
+                            client_phone: policy.client_phone,
+                            client_email: policy.client_email,
+                            normalized_at: policy.normalized_at
                         });
                     }
-                    return isValid;
-                }); // Filter out invalid objects
+                });
 
-                console.log('🔍 getAllPolicies: Returning normalized array of', normalizedPolicies.length, 'policies');
-                return normalizedPolicies;
+                return data;
             } else if (data && data.success && data.policies) {
-                console.log('🔍 getAllPolicies: Returning object.policies with', data.policies.length, 'policies');
+                // Legacy format fallback
+                console.log('🔍 getAllPolicies: Returning legacy object.policies with', data.policies.length, 'policies');
                 return data.policies;
             } else {
                 console.warn('🔍 getAllPolicies: Unexpected response format from /api/policies:');
@@ -220,8 +210,17 @@ class PolicyDataManager {
     // Update policy
     async updatePolicy(policyId, updates) {
         try {
+            console.log('🚨 UPDATEPOLICY DEBUG - Starting update process');
+            console.log('🚨 UPDATEPOLICY DEBUG - policyId:', policyId);
+            console.log('🚨 UPDATEPOLICY DEBUG - updates object:', updates);
+            console.log('🚨 UPDATEPOLICY DEBUG - updates keys:', Object.keys(updates));
+            console.log('🚨 UPDATEPOLICY DEBUG - updates phone:', updates.client_phone);
+            console.log('🚨 UPDATEPOLICY DEBUG - updates email:', updates.client_email);
+
             // For now, we need to get all policies, update the specific one, and save back
             const policies = await this.getAllPolicies();
+            console.log('🚨 UPDATEPOLICY DEBUG - Retrieved', policies.length, 'policies from database');
+
             // Enhanced policy matching - check multiple ID formats and policy number
             const policyIndex = policies.findIndex(p => {
                 return p.id === policyId ||
@@ -236,22 +235,51 @@ class PolicyDataManager {
             console.log('🔍 updatePolicy: Found at index:', policyIndex);
             if (policyIndex !== -1) {
                 console.log('🔍 updatePolicy: Matched policy:', policies[policyIndex].id, policies[policyIndex].policy_number);
-            }
 
-            if (policyIndex !== -1) {
+                // DEBUG: Log original policy structure BEFORE update
+                console.log('🚨 UPDATEPOLICY DEBUG - ORIGINAL policy object:');
+                console.log('🚨 UPDATEPOLICY DEBUG - Original keys:', Object.keys(policies[policyIndex]));
+                console.log('🚨 UPDATEPOLICY DEBUG - Original client_phone:', policies[policyIndex].client_phone);
+                console.log('🚨 UPDATEPOLICY DEBUG - Original client_email:', policies[policyIndex].client_email);
+                console.log('🚨 UPDATEPOLICY DEBUG - Original phone:', policies[policyIndex].phone);
+                console.log('🚨 UPDATEPOLICY DEBUG - Original email:', policies[policyIndex].email);
+                console.log('🚨 UPDATEPOLICY DEBUG - Full original policy:', policies[policyIndex]);
+
+                // Perform the merge
                 policies[policyIndex] = { ...policies[policyIndex], ...updates };
+
+                // DEBUG: Log merged policy structure AFTER update
+                console.log('🚨 UPDATEPOLICY DEBUG - MERGED policy object:');
+                console.log('🚨 UPDATEPOLICY DEBUG - Merged keys:', Object.keys(policies[policyIndex]));
+                console.log('🚨 UPDATEPOLICY DEBUG - Merged client_phone:', policies[policyIndex].client_phone);
+                console.log('🚨 UPDATEPOLICY DEBUG - Merged client_email:', policies[policyIndex].client_email);
+                console.log('🚨 UPDATEPOLICY DEBUG - Merged phone:', policies[policyIndex].phone);
+                console.log('🚨 UPDATEPOLICY DEBUG - Merged email:', policies[policyIndex].email);
+                console.log('🚨 UPDATEPOLICY DEBUG - Full merged policy:', policies[policyIndex]);
+
+                console.log('🚨 UPDATEPOLICY DEBUG - Sending to server - payload structure:');
+                const payload = { policies: policies };
+                console.log('🚨 UPDATEPOLICY DEBUG - Payload keys:', Object.keys(payload));
+                console.log('🚨 UPDATEPOLICY DEBUG - Policies array length:', payload.policies.length);
+                console.log('🚨 UPDATEPOLICY DEBUG - Updated policy in payload:', payload.policies[policyIndex]);
 
                 const response = await fetch(`${this.apiBase}/api/policies`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ policies: policies })
+                    body: JSON.stringify(payload)
                 });
 
+                console.log('🚨 UPDATEPOLICY DEBUG - Server response status:', response.status);
+                console.log('🚨 UPDATEPOLICY DEBUG - Response headers:', [...response.headers.entries()]);
+
                 const result = await response.json();
+                console.log('🚨 UPDATEPOLICY DEBUG - Server response data:', result);
+
                 if (result.success) {
                     console.log('✅ Policy updated successfully');
+                    console.log('🚨 UPDATEPOLICY DEBUG - Returning merged policy:', policies[policyIndex]);
                     return policies[policyIndex];
                 } else {
                     console.error('❌ Failed to update policy:', result.error);
@@ -263,6 +291,7 @@ class PolicyDataManager {
             return null;
         } catch (error) {
             console.error('❌ Error updating policy:', error);
+            console.error('❌ Error stack:', error.stack);
             return null;
         }
     }

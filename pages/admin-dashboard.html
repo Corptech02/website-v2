@@ -8,10 +8,10 @@
     <meta http-equiv="Expires" content="0">
 
     <!-- Load policy database FIRST -->
-    <script src="/js/policy-data.js?v=1766948746-template-display-fix"></script>
+    <script src="/js/policy-data.js?v=1766951780-FORCE-RELOAD-NOW"></script>
 
-    <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251221');</script>
-    <!-- CACHE BUSTER: 20251221-FIXED -->
+    <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251229-CRM-MERGE-FIX');</script>
+    <!-- CACHE BUSTER: 20251229-CRM-MERGE-FIX -->
     <title>Admin Dashboard - Vanguard Insurance Group</title>
     <link rel="stylesheet" href="../css/styles.css?v=11">
     <link rel="stylesheet" href="../css/pages.css?v=11">
@@ -2387,8 +2387,68 @@
                             icon = 'fa-boxes';
                         }
 
+                        // DEBUG: Log policy structure for first few policies
+                        if (policies.indexOf(policy) < 3) {
+                            console.log('🔍 DEBUG Policy Structure for', policy.policy_number || policy.policyNumber, ':', {
+                                insured: policy.insured,
+                                insured_name: policy.insured_name,
+                                clientName: policy.clientName,
+                                client_phone: policy.client_phone,
+                                client_email: policy.client_email,
+                                contact: policy.contact,
+                                detailed_crm_data: policy.detailed_crm_data,
+                                crm_data: policy.crm_data,
+                                hasInsured: !!policy.insured,
+                                hasContact: !!policy.contact,
+                                hasCRMData: !!policy.detailed_crm_data,
+                                phoneFromClientField: policy.client_phone,
+                                emailFromClientField: policy.client_email,
+                                phoneFromContact: policy.contact && policy.contact['Phone Number'],
+                                emailFromContact: policy.contact && policy.contact['Email Address'],
+                                phoneFromCRM: policy.detailed_crm_data && policy.detailed_crm_data.contact && policy.detailed_crm_data.contact['Phone Number']
+                            });
+                        }
+
+                        // Handle different field name variations from normalized data
+                        const clientName = policy.insured_name || policy.clientName ||
+                                          (policy.insured && typeof policy.insured === 'object' && policy.insured['Name/Business Name']) ||
+                                          (policy.insured && typeof policy.insured === 'string' ? policy.insured : null) ||
+                                          (typeof policy.contact === 'object' && policy.contact && typeof policy.contact !== 'string' ? policy.contact['Full Name'] || policy.contact.name : null) || 'Unknown';
+
+                        // DEBUG: Log for target policies - match ANY of these policies
+                        if ((policy.id === 'POLICY') || (policy.id === 'POL966740') ||
+                            (policy.policyNumber === 'POLICY') || (policy.policyNumber === 'POL966740') ||
+                            (policy.clientName && (policy.clientName.includes('APPROVED FREIGHT') || policy.clientName.includes('ADI EXPRESS')))) {
+
+                            console.log('🚨 TARGET POLICY DEBUG - Full Policy Object:', policy);
+                            console.log('🚨 TARGET POLICY DEBUG - All fields:', {
+                                'id': policy.id,
+                                'clientName': policy.clientName,
+                                'policyNumber': policy.policyNumber,
+                                'phone fields': {
+                                    'client_phone': policy.client_phone,
+                                    'phone': policy.phone,
+                                    'clientPhone': policy.clientPhone
+                                },
+                                'email fields': {
+                                    'client_email': policy.client_email,
+                                    'email': policy.email,
+                                    'clientEmail': policy.clientEmail
+                                },
+                                'ALL_KEYS': Object.keys(policy)
+                            });
+                        }
+
+                        // Updated field mapping for the actual data structure
+                        let clientPhone = policy.client_phone || policy.phone || policy.clientPhone || 'N/A';
+                        let clientEmail = policy.client_email || policy.email || policy.clientEmail || 'N/A';
+
+                        const policyNumber = policy.policy_number || policy.policyNumber || 'N/A';
+                        const effectiveDate = policy.effective_date || policy.effectiveDate || 'N/A';
+                        const expirationDate = policy.expiration_date || policy.expirationDate || 'N/A';
+
                         const today = new Date();
-                        const expDate = new Date(policy.expiration_date);
+                        const expDate = new Date(expirationDate);
                         const diffTime = expDate - today;
                         const daysUntilExp = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -2401,14 +2461,6 @@
                             statusClass = 'pending';
                             actualStatus = 'Expiring Soon';
                         }
-
-                        // Handle different field name variations from normalized data
-                        const clientName = policy.insured_name || policy.clientName || policy.insured || 'N/A';
-                        const clientPhone = policy.client_phone || policy.phone || policy.clientPhone || 'N/A';
-                        const clientEmail = policy.client_email || policy.email || policy.clientEmail || 'N/A';
-                        const policyNumber = policy.policy_number || policy.policyNumber || 'N/A';
-                        const effectiveDate = policy.effective_date || policy.effectiveDate || 'N/A';
-                        const expirationDate = policy.expiration_date || policy.expirationDate || 'N/A';
 
                         policyCard.innerHTML = `
                             <div class="policy-card-header">
@@ -4192,18 +4244,75 @@ contact@vigagency.com`;
                     if (data && data.leads && data.leads.length > 0) {
                         console.log('✅ SUCCESS! Loaded', data.leads.length, 'live CRM leads');
 
-                        // Set up the global variables for the modern system
-                        crmPolicies = data.leads.map(policy => ({
-                            id: policy.id,
-                            policy_number: policy.policy_number || 'N/A',
-                            insured_name: policy.insured_name || policy.name || 'Unknown Client',
-                            client_name: policy.insured_name || policy.name || 'Unknown Client',
-                            client_phone: policy.client_phone || policy.phone || 'N/A',
-                            client_email: policy.client_email || policy.email || 'N/A',
-                            carrier: policy.carrier || 'N/A',
-                            status: policy.status || (policy.crm_data && policy.crm_data.stage) || policy.stage || 'Unknown',
-                            exists: false // Will be updated below
-                        }));
+                        // Get existing local policies to preserve phone/email edits
+                        const existingLocalPolicies = window.policyDB ? await window.policyDB.getAllPolicies() : [];
+                        console.log('🔍 CRM LOAD: Found', existingLocalPolicies.length, 'existing local policies for merge');
+
+                        // Set up the global variables for the modern system - MERGE WITH LOCAL DATA
+                        crmPolicies = data.leads.map(policy => {
+                            // Find corresponding local policy by policy number or ID
+                            const localPolicy = existingLocalPolicies.find(local =>
+                                local.policy_number === policy.policy_number ||
+                                local.policyNumber === policy.policy_number ||
+                                local.id === policy.id
+                            );
+
+                            // Preserve locally edited phone/email data if it exists and is not empty
+                            const preservedPhone = (localPolicy?.client_phone && localPolicy.client_phone !== 'N/A' && localPolicy.client_phone.trim() !== '') ?
+                                localPolicy.client_phone :
+                                (policy.client_phone && policy.client_phone !== 'N/A' ? policy.client_phone : (policy.phone || ''));
+
+                            const preservedEmail = (localPolicy?.client_email && localPolicy.client_email !== 'N/A' && localPolicy.client_email.trim() !== '') ?
+                                localPolicy.client_email :
+                                (policy.client_email && policy.client_email !== 'N/A' ? policy.client_email : (policy.email || ''));
+
+                            if (localPolicy && (preservedPhone || preservedEmail)) {
+                                console.log('🔄 CRM MERGE: Preserving local edits for', policy.policy_number, '- phone:', preservedPhone, 'email:', preservedEmail);
+                            }
+
+                            return {
+                                id: policy.id,
+                                policy_number: policy.policy_number || 'N/A',
+                                insured_name: policy.insured_name || policy.name || 'Unknown Client',
+                                client_name: policy.insured_name || policy.name || 'Unknown Client',
+                                client_phone: preservedPhone, // Use preserved data
+                                client_email: preservedEmail, // Use preserved data
+                                carrier: policy.carrier || 'N/A',
+                                status: policy.status || (policy.crm_data && policy.crm_data.stage) || policy.stage || 'Unknown',
+                                exists: false // Will be updated below
+                            };
+                        });
+
+                        // CRITICAL: Save merged CRM policies to PolicyDataManager to preserve local edits
+                        if (window.policyDB && crmPolicies.length > 0) {
+                            console.log('💾 CRM LOAD: Saving', crmPolicies.length, 'merged policies to PolicyDataManager...');
+                            try {
+                                // Save all policies as a batch to preserve merge results
+                                const saveResult = await fetch('/api/policies', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ policies: crmPolicies })
+                                });
+                                const result = await saveResult.json();
+                                if (result.success) {
+                                    console.log('✅ CRM LOAD: Successfully saved merged policies to server storage');
+
+                                    // Reload policies from server to get the normalized versions
+                                    window.allPolicies = await window.policyDB.getAllPolicies();
+                                    window.filteredPolicies = [...window.allPolicies];
+                                    console.log('✅ CRM LOAD: Reloaded', window.allPolicies.length, 'normalized policies from server');
+
+                                    // Update the displayed policies immediately
+                                    if (typeof window.displayAllPolicies === 'function') {
+                                        window.displayAllPolicies(window.filteredPolicies);
+                                    }
+                                } else {
+                                    console.error('❌ CRM LOAD: Failed to save merged policies:', result.error);
+                                }
+                            } catch (error) {
+                                console.error('❌ CRM LOAD: Error saving merged policies:', error);
+                            }
+                        }
 
                         // Check which policies already exist using unified function
                         let existingPolicyNumbers = [];
@@ -4658,10 +4767,58 @@ contact@vigagency.com`;
                     icon = 'fa-boxes';
                 }
 
+                // Handle different field name variations from normalized data
+                const clientName = policy.insured_name || policy.clientName ||
+                                  (policy.insured && typeof policy.insured === 'object' && policy.insured['Name/Business Name']) ||
+                                  (policy.insured && typeof policy.insured === 'string' ? policy.insured : null) ||
+                                  (typeof policy.contact === 'object' && policy.contact && typeof policy.contact !== 'string' ? policy.contact['Full Name'] || policy.contact.name : null) || 'Unknown';
+
+                // AGGRESSIVE field mapping - check ALL possible locations for phone/email
+                let clientPhone = 'N/A';
+                let clientEmail = 'N/A';
+
+                // Check every possible location for phone number
+                if (policy.client_phone && policy.client_phone.trim() !== '') {
+                    clientPhone = policy.client_phone;
+                } else if (policy.phone && policy.phone.trim() !== '') {
+                    clientPhone = policy.phone;
+                } else if (policy.clientPhone && policy.clientPhone.trim() !== '') {
+                    clientPhone = policy.clientPhone;
+                } else if (policy.contact && policy.contact['Phone Number'] && policy.contact['Phone Number'].trim() !== '') {
+                    clientPhone = policy.contact['Phone Number'];
+                } else if (policy.contact && policy.contact.phone && policy.contact.phone.trim() !== '') {
+                    clientPhone = policy.contact.phone;
+                } else if (policy.detailed_crm_data && policy.detailed_crm_data.contact && policy.detailed_crm_data.contact['Phone Number'] && policy.detailed_crm_data.contact['Phone Number'].trim() !== '') {
+                    clientPhone = policy.detailed_crm_data.contact['Phone Number'];
+                } else if (policy.crm_data && policy.crm_data.phone && policy.crm_data.phone.trim() !== '') {
+                    clientPhone = policy.crm_data.phone;
+                }
+
+                // Check every possible location for email
+                if (policy.client_email && policy.client_email.trim() !== '') {
+                    clientEmail = policy.client_email;
+                } else if (policy.email && policy.email.trim() !== '') {
+                    clientEmail = policy.email;
+                } else if (policy.clientEmail && policy.clientEmail.trim() !== '') {
+                    clientEmail = policy.clientEmail;
+                } else if (policy.contact && policy.contact['Email Address'] && policy.contact['Email Address'].trim() !== '') {
+                    clientEmail = policy.contact['Email Address'];
+                } else if (policy.contact && policy.contact.email && policy.contact.email.trim() !== '') {
+                    clientEmail = policy.contact.email;
+                } else if (policy.detailed_crm_data && policy.detailed_crm_data.contact && policy.detailed_crm_data.contact['Email Address'] && policy.detailed_crm_data.contact['Email Address'].trim() !== '') {
+                    clientEmail = policy.detailed_crm_data.contact['Email Address'];
+                } else if (policy.crm_data && policy.crm_data.email && policy.crm_data.email.trim() !== '') {
+                    clientEmail = policy.crm_data.email;
+                }
+
+                const policyNumber = policy.policy_number || policy.policyNumber || 'N/A';
+                const effectiveDate = policy.effective_date || policy.effectiveDate || 'N/A';
+                const expirationDate = policy.expiration_date || policy.expirationDate || 'N/A';
+
                 // Determine status class and check expiration
                 let statusClass = 'active';
                 let actualStatus = policy.status || 'Active';
-                const daysUntilExp = getDaysUntilExpiration(policy.expiration_date);
+                const daysUntilExp = getDaysUntilExpiration(expirationDate);
 
                 if (daysUntilExp < 0) {
                     statusClass = 'expired';
@@ -4672,14 +4829,6 @@ contact@vigagency.com`;
                     statusClass = 'pending';
                     actualStatus = 'Expiring Soon';
                 }
-
-                // Handle different field name variations from normalized data
-                const clientName = policy.insured_name || policy.clientName || policy.insured || 'N/A';
-                const clientPhone = policy.client_phone || policy.phone || policy.clientPhone || 'N/A';
-                const clientEmail = policy.client_email || policy.email || policy.clientEmail || 'N/A';
-                const policyNumber = policy.policy_number || policy.policyNumber || 'N/A';
-                const effectiveDate = policy.effective_date || policy.effectiveDate || 'N/A';
-                const expirationDate = policy.expiration_date || policy.expirationDate || 'N/A';
 
                 policyCard.innerHTML = `
                     <div class="policy-card-header">
@@ -7670,6 +7819,15 @@ contact@vigagency.com`;
 
             // Get form data
             const formData = new FormData(this);
+
+            // DEBUG: Log what we're getting from the form
+            console.log('🚨 FORM SAVE DEBUG:', {
+                'formData.get(clientPhone)': formData.get('clientPhone'),
+                'formData.get(clientEmail)': formData.get('clientEmail'),
+                'formData.get(clientName)': formData.get('clientName'),
+                'currentEditingPolicyId': window.currentEditingPolicyId
+            });
+
             const updatedData = {
                 insured_name: formData.get('clientName').trim(),
                 client_phone: formData.get('clientPhone').trim(),
@@ -7681,6 +7839,8 @@ contact@vigagency.com`;
                 status: formData.get('status'),
                 address: formData.get('address').trim()
             };
+
+            console.log('🚨 SAVING DATA DEBUG:', updatedData);
 
             // Get coverage data from the new coverage forms
             const coverageData = {

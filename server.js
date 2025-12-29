@@ -824,12 +824,27 @@ app.get('/api/policies', (req, res) => {
             policies = JSON.parse(fs.readFileSync(policiesFile, 'utf8'));
         }
 
-        console.log(`✅ Found ${policies.length} policies in server storage`);
-        res.json({
-            success: true,
-            policies: policies,
-            count: policies.length
+        // Normalize all policies on read to ensure consistent structure
+        const normalizedPolicies = policies.map(policy => {
+            // Check if policy is already normalized
+            if (policy.normalized_at) {
+                return policy; // Already normalized
+            } else {
+                console.log('🔧 SERVER GET: Normalizing legacy policy on read:', policy.id || policy.policyNumber);
+                return normalizePolicy(policy);
+            }
         });
+
+        // If we had to normalize any policies, save them back
+        if (normalizedPolicies.some((p, i) => !policies[i].normalized_at)) {
+            console.log('💾 SERVER GET: Saving normalized policies back to storage');
+            fs.writeFileSync(policiesFile, JSON.stringify(normalizedPolicies, null, 2));
+        }
+
+        console.log(`✅ Found ${normalizedPolicies.length} normalized policies in server storage`);
+
+        // Return as a direct array for simpler client-side handling
+        res.json(normalizedPolicies);
     } catch (error) {
         console.error('❌ Error reading policies:', error);
         res.status(500).json({
@@ -839,9 +854,66 @@ app.get('/api/policies', (req, res) => {
     }
 });
 
+// Data normalization function for consistent policy structure
+function normalizePolicy(policy) {
+    console.log('🔧 SERVER: Normalizing policy structure for:', policy.id || policy.policyNumber || 'unknown');
+
+    // Create normalized policy object with consistent field names
+    const normalized = {
+        // Primary identifiers - prefer standard names, fall back to alternatives
+        id: policy.id || policy.policyNumber || policy.policy_number || `policy-${Date.now()}`,
+        policy_number: policy.policy_number || policy.policyNumber || policy.id,
+
+        // Client/Insured information - normalize to standard names
+        insured_name: policy.insured_name || policy.clientName || policy.insured || '',
+        client_phone: policy.client_phone || policy.phone || policy.clientPhone || '',
+        client_email: policy.client_email || policy.email || policy.clientEmail || '',
+
+        // Policy details
+        type: policy.type || policy.policyType || 'Commercial Auto',
+        carrier: policy.carrier || '',
+        agency: policy.agency || '',
+        status: policy.status || 'Active',
+        premium: policy.premium || 0,
+
+        // Dates - normalize format
+        effective_date: policy.effective_date || policy.effectiveDate || '',
+        expiration_date: policy.expiration_date || policy.expirationDate || policy.expiryDate || '',
+
+        // Address
+        address: policy.address || '',
+
+        // Preserve all other data
+        ...policy,
+
+        // Server metadata
+        server_stored: true,
+        server_stored_at: new Date().toISOString(),
+        normalized_at: new Date().toISOString()
+    };
+
+    // Ensure we have the standard field names set correctly
+    if (!normalized.insured_name && normalized.clientName) {
+        normalized.insured_name = normalized.clientName;
+    }
+    if (!normalized.policy_number && normalized.policyNumber) {
+        normalized.policy_number = normalized.policyNumber;
+    }
+
+    console.log('🔧 SERVER: Normalized policy fields:', {
+        id: normalized.id,
+        policy_number: normalized.policy_number,
+        insured_name: normalized.insured_name,
+        client_phone: normalized.client_phone,
+        client_email: normalized.client_email
+    });
+
+    return normalized;
+}
+
 // Add/Import policies
 app.post('/api/policies', (req, res) => {
-    console.log('💾 Saving policies to server storage');
+    console.log('💾 Saving policies to server storage with normalization');
 
     try {
         const newPolicies = req.body.policies || [];
@@ -871,33 +943,73 @@ app.post('/api/policies', (req, res) => {
             console.log(`🧹 Removed ${originalCount - existingPolicies.length} demo policies from server storage`);
         }
 
-        // Add new policies (avoid duplicates)
-        const existingNumbers = existingPolicies.map(p => p.policy_number || p.policyNumber);
-        let addedCount = 0;
+        console.log(`🔧 SERVER: Processing ${newPolicies.length} policies for save/update`);
 
-        newPolicies.forEach(policy => {
-            const policyNumber = policy.policy_number || policy.policyNumber;
-            if (policyNumber && !existingNumbers.includes(policyNumber)) {
-                existingPolicies.push({
-                    ...policy,
-                    server_stored: true,
-                    server_stored_at: new Date().toISOString()
-                });
-                addedCount++;
-            }
-        });
+        // Check if this is a complete replacement (all policies being sent)
+        const isFullReplacement = newPolicies.length === existingPolicies.length + 1 ||
+                                 newPolicies.length > 10; // Likely a full replacement if many policies
 
-        // Save back to file
-        fs.writeFileSync(policiesFile, JSON.stringify(existingPolicies, null, 2));
+        if (isFullReplacement) {
+            console.log(`🔄 SERVER: Detected full policy replacement - replacing all ${existingPolicies.length} existing policies with ${newPolicies.length} normalized policies`);
 
-        console.log(`✅ Added ${addedCount} new policies to server storage. Total: ${existingPolicies.length}`);
+            // Normalize all incoming policies
+            const normalizedPolicies = newPolicies.map(policy => normalizePolicy(policy));
 
-        res.json({
-            success: true,
-            added: addedCount,
-            total: existingPolicies.length,
-            message: `Successfully added ${addedCount} policies`
-        });
+            // Replace entire policy array
+            fs.writeFileSync(policiesFile, JSON.stringify(normalizedPolicies, null, 2));
+
+            console.log(`✅ SERVER: Replaced all policies with ${normalizedPolicies.length} normalized policies`);
+
+            res.json({
+                success: true,
+                replaced: normalizedPolicies.length,
+                total: normalizedPolicies.length,
+                message: `Successfully replaced with ${normalizedPolicies.length} normalized policies`
+            });
+        } else {
+            // Add new policies (avoid duplicates) - original logic but with normalization
+            const existingNumbers = existingPolicies.map(p => p.policy_number || p.policyNumber);
+            let addedCount = 0;
+            let updatedCount = 0;
+
+            newPolicies.forEach(policy => {
+                const normalizedPolicy = normalizePolicy(policy);
+                const policyNumber = normalizedPolicy.policy_number;
+
+                if (policyNumber) {
+                    const existingIndex = existingPolicies.findIndex(p =>
+                        (p.policy_number === policyNumber) ||
+                        (p.policyNumber === policyNumber) ||
+                        (p.id === normalizedPolicy.id)
+                    );
+
+                    if (existingIndex >= 0) {
+                        // Update existing policy
+                        existingPolicies[existingIndex] = normalizedPolicy;
+                        updatedCount++;
+                        console.log(`🔄 SERVER: Updated existing policy: ${policyNumber}`);
+                    } else if (!existingNumbers.includes(policyNumber)) {
+                        // Add new policy
+                        existingPolicies.push(normalizedPolicy);
+                        addedCount++;
+                        console.log(`➕ SERVER: Added new policy: ${policyNumber}`);
+                    }
+                }
+            });
+
+            // Save back to file
+            fs.writeFileSync(policiesFile, JSON.stringify(existingPolicies, null, 2));
+
+            console.log(`✅ SERVER: Added ${addedCount}, updated ${updatedCount} policies. Total: ${existingPolicies.length}`);
+
+            res.json({
+                success: true,
+                added: addedCount,
+                updated: updatedCount,
+                total: existingPolicies.length,
+                message: `Successfully added ${addedCount} and updated ${updatedCount} policies`
+            });
+        }
 
     } catch (error) {
         console.error('❌ Error saving policies:', error);
