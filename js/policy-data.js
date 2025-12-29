@@ -164,7 +164,29 @@ class PolicyDataManager {
     async getPolicyById(policyId) {
         try {
             const policies = await this.getAllPolicies();
-            return policies.find(p => p.id === policyId) || null;
+            console.log('🔍 getPolicyById: Looking for policy:', policyId);
+            console.log('🔍 getPolicyById: Available policies:', policies.length);
+
+            // Enhanced policy matching - check multiple ID formats and policy number
+            const policy = policies.find(p => {
+                const matches = p.id === policyId ||
+                       p.id === `policy-${policyId}` ||
+                       p.policy_number === policyId ||
+                       p.policyNumber === policyId ||
+                       (p.id && p.id.includes(policyId)) ||
+                       (policyId.includes('policy-') && p.policy_number === policyId.replace('policy-', ''));
+
+                if (matches) {
+                    console.log('✅ getPolicyById: Found matching policy:', p.id, p.policy_number);
+                }
+                return matches;
+            });
+
+            if (!policy) {
+                console.warn('⚠️ getPolicyById: No policy found for ID:', policyId);
+            }
+
+            return policy || null;
         } catch (error) {
             console.error('❌ Error fetching policy:', error);
             return null;
@@ -217,78 +239,33 @@ class PolicyDataManager {
             console.log('🚨 UPDATEPOLICY DEBUG - updates phone:', updates.client_phone);
             console.log('🚨 UPDATEPOLICY DEBUG - updates email:', updates.client_email);
 
-            // For now, we need to get all policies, update the specific one, and save back
-            const policies = await this.getAllPolicies();
-            console.log('🚨 UPDATEPOLICY DEBUG - Retrieved', policies.length, 'policies from database');
+            // Use efficient single-policy PUT endpoint instead of sending all policies
+            console.log('🚨 UPDATEPOLICY DEBUG - Using efficient PUT endpoint for single policy update');
 
-            // Enhanced policy matching - check multiple ID formats and policy number
-            const policyIndex = policies.findIndex(p => {
-                return p.id === policyId ||
-                       p.id === `policy-${policyId}` ||
-                       p.policy_number === policyId ||
-                       p.policyNumber === policyId ||
-                       (p.id && p.id.includes(policyId)) ||
-                       (policyId.includes('policy-') && p.policy_number === policyId.replace('policy-', ''));
+            const response = await fetch(`${this.apiBase}/api/policies/${policyId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updates)
             });
 
-            console.log('🔍 updatePolicy: Looking for policy:', policyId);
-            console.log('🔍 updatePolicy: Found at index:', policyIndex);
-            if (policyIndex !== -1) {
-                console.log('🔍 updatePolicy: Matched policy:', policies[policyIndex].id, policies[policyIndex].policy_number);
+            console.log('🚨 UPDATEPOLICY DEBUG - Server response status:', response.status);
+            console.log('🚨 UPDATEPOLICY DEBUG - Response headers:', [...response.headers.entries()]);
 
-                // DEBUG: Log original policy structure BEFORE update
-                console.log('🚨 UPDATEPOLICY DEBUG - ORIGINAL policy object:');
-                console.log('🚨 UPDATEPOLICY DEBUG - Original keys:', Object.keys(policies[policyIndex]));
-                console.log('🚨 UPDATEPOLICY DEBUG - Original client_phone:', policies[policyIndex].client_phone);
-                console.log('🚨 UPDATEPOLICY DEBUG - Original client_email:', policies[policyIndex].client_email);
-                console.log('🚨 UPDATEPOLICY DEBUG - Original phone:', policies[policyIndex].phone);
-                console.log('🚨 UPDATEPOLICY DEBUG - Original email:', policies[policyIndex].email);
-                console.log('🚨 UPDATEPOLICY DEBUG - Full original policy:', policies[policyIndex]);
+            const result = await response.json();
+            console.log('🚨 UPDATEPOLICY DEBUG - Server response data:', result);
 
-                // Perform the merge
-                policies[policyIndex] = { ...policies[policyIndex], ...updates };
-
-                // DEBUG: Log merged policy structure AFTER update
-                console.log('🚨 UPDATEPOLICY DEBUG - MERGED policy object:');
-                console.log('🚨 UPDATEPOLICY DEBUG - Merged keys:', Object.keys(policies[policyIndex]));
-                console.log('🚨 UPDATEPOLICY DEBUG - Merged client_phone:', policies[policyIndex].client_phone);
-                console.log('🚨 UPDATEPOLICY DEBUG - Merged client_email:', policies[policyIndex].client_email);
-                console.log('🚨 UPDATEPOLICY DEBUG - Merged phone:', policies[policyIndex].phone);
-                console.log('🚨 UPDATEPOLICY DEBUG - Merged email:', policies[policyIndex].email);
-                console.log('🚨 UPDATEPOLICY DEBUG - Full merged policy:', policies[policyIndex]);
-
-                console.log('🚨 UPDATEPOLICY DEBUG - Sending to server - payload structure:');
-                const payload = { policies: policies };
-                console.log('🚨 UPDATEPOLICY DEBUG - Payload keys:', Object.keys(payload));
-                console.log('🚨 UPDATEPOLICY DEBUG - Policies array length:', payload.policies.length);
-                console.log('🚨 UPDATEPOLICY DEBUG - Updated policy in payload:', payload.policies[policyIndex]);
-
-                const response = await fetch(`${this.apiBase}/api/policies`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                console.log('🚨 UPDATEPOLICY DEBUG - Server response status:', response.status);
-                console.log('🚨 UPDATEPOLICY DEBUG - Response headers:', [...response.headers.entries()]);
-
-                const result = await response.json();
-                console.log('🚨 UPDATEPOLICY DEBUG - Server response data:', result);
-
-                if (result.success) {
-                    console.log('✅ Policy updated successfully');
-                    console.log('🚨 UPDATEPOLICY DEBUG - Returning merged policy:', policies[policyIndex]);
-                    return policies[policyIndex];
-                } else {
-                    console.error('❌ Failed to update policy:', result.error);
-                    return null;
-                }
+            if (result.success) {
+                console.log('✅ Policy updated successfully using PUT endpoint');
+                // Get the updated policy to return
+                const updatedPolicy = await this.getPolicyById(policyId);
+                console.log('🚨 UPDATEPOLICY DEBUG - Returning updated policy:', updatedPolicy);
+                return updatedPolicy;
+            } else {
+                console.error('❌ Failed to update policy:', result.error);
+                return null;
             }
-
-            console.error('❌ Policy not found for update:', policyId);
-            return null;
         } catch (error) {
             console.error('❌ Error updating policy:', error);
             console.error('❌ Error stack:', error.stack);

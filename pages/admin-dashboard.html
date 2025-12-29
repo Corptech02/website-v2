@@ -8,10 +8,10 @@
     <meta http-equiv="Expires" content="0">
 
     <!-- Load policy database FIRST -->
-    <script src="/js/policy-data.js?v=1766951780-FORCE-RELOAD-NOW"></script>
+    <script src="/js/policy-data.js?v=1766952280-ENHANCED-GETBYID"></script>
 
-    <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251229-CRM-MERGE-FIX');</script>
-    <!-- CACHE BUSTER: 20251229-CRM-MERGE-FIX -->
+    <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251229-DEBUG-EXISTENCE');</script>
+    <!-- CACHE BUSTER: 20251229-DEBUG-EXISTENCE -->
     <title>Admin Dashboard - Vanguard Insurance Group</title>
     <link rel="stylesheet" href="../css/styles.css?v=11">
     <link rel="stylesheet" href="../css/pages.css?v=11">
@@ -216,19 +216,42 @@
         }
 
         .existing-policy {
-            opacity: 0.5;
-            background: #f5f5f5;
-            border-color: #ccc;
+            opacity: 0.6;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #bdc3c7;
             cursor: not-allowed;
+            position: relative;
+        }
+
+        .existing-policy:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(189, 195, 199, 0.1),
+                rgba(189, 195, 199, 0.1) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            border-radius: 10px;
+            pointer-events: none;
         }
 
         .exists-badge {
-            background: #4caf50;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 15px;
             font-size: 11px;
             font-weight: bold;
+            box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+            border: 1px solid #c0392b;
+            position: relative;
+            z-index: 2;
         }
 
         .policy-card-header {
@@ -813,6 +836,149 @@
         .policy-import-card input[type="checkbox"] {
             pointer-events: auto;
         }
+
+        /* Policy Type Selector - Horizontal Layout */
+        .policy-type-selector {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 15px !important;
+            flex-wrap: wrap !important;
+            margin-bottom: 20px !important;
+        }
+
+        .policy-type-option {
+            display: flex !important;
+            align-items: center !important;
+            cursor: pointer !important;
+            padding: 12px 16px !important;
+            border: 2px solid #e1e8ed !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            min-width: 140px !important;
+            justify-content: center !important;
+            background: white !important;
+        }
+
+        .policy-type-option:hover {
+            border-color: #0066cc !important;
+            background: #f8fafc !important;
+        }
+
+        .policy-type-option input[type="radio"] {
+            margin-right: 8px !important;
+        }
+
+        .policy-type-option input[type="radio"]:checked + .option-content {
+            color: #0066cc !important;
+            font-weight: 600 !important;
+        }
+
+        .policy-type-option:has(input[type="radio"]:checked) {
+            border-color: #0066cc !important;
+            background: #f0f7ff !important;
+        }
+
+        .policy-type-option .option-content {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        .policy-type-option .option-content i {
+            font-size: 16px !important;
+        }
+
+        .policy-type-option .option-content span {
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }
+
+        /* Fix Add Policy Header Layout */
+        .add-policy-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 30px !important;
+            padding-bottom: 20px !important;
+            border-bottom: 2px solid #f1f3f4 !important;
+        }
+
+        .add-policy-header h2 {
+            font-size: 28px !important;
+            color: #003366 !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+
+        .close-btn {
+            background: none !important;
+            border: none !important;
+            font-size: 20px !important;
+            cursor: pointer !important;
+            color: #999 !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .close-btn:hover {
+            background: #f5f5f5 !important;
+            color: #333 !important;
+        }
+
+        /* Ensure Modal Actions are Always Visible */
+        .modal-actions {
+            display: flex !important;
+            gap: 15px !important;
+            justify-content: flex-end !important;
+            padding-top: 20px !important;
+            border-top: 1px solid #f1f3f4 !important;
+            margin-top: 20px !important;
+            position: sticky !important;
+            bottom: 0 !important;
+            background: white !important;
+            z-index: 10 !important;
+        }
+
+        /* Ensure Modal Content is Scrollable */
+        .add-policy-modal {
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .add-policy-modal form {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* Force Save Button Visibility */
+        .btn-save, #savePolicyBtn {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            visibility: visible !important;
+            background: #28a745 !important;
+            color: white !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+        }
+
+        /* Modal actions styling */
+        .modal-actions {
+            padding: 20px !important;
+            min-height: 60px !important;
+        }
     </style>
 </head>
 <body>
@@ -940,8 +1106,8 @@
         </div>
     </section>
 
-    <!-- Add Policy Modal -->
-    <div class="modal-overlay" id="addPolicyModal">
+    <!-- Add Policy Modal (Incomplete - Duplicate) -->
+    <div class="modal-overlay" id="addPolicyModalIncomplete">
         <div class="add-policy-modal">
             <div class="add-policy-header">
                 <h2>Add New Policy</h2>
@@ -950,7 +1116,7 @@
                 </button>
             </div>
 
-            <form id="addPolicyForm">
+            <form id="addPolicyFormIncomplete">
                 <!-- Type Selection -->
                 <div class="form-section">
                     <h3>Policy Type</h3>
@@ -1037,6 +1203,15 @@
                         <div class="form-error">Please enter a valid email</div>
                     </div>
                 </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddPolicyModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-save" id="savePolicyBtn">
+                        <i class="fas fa-save"></i> Save Policy
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -1078,7 +1253,8 @@
 
             // Update counts
             const newPolicies = crmPolicies.filter(p => !p.exists);
-            document.getElementById('availablePoliciesCount').textContent = `${newPolicies.length} new policies available for import (${crmPolicies.length} total from CRM)`;
+            const existingPolicies = crmPolicies.filter(p => p.exists);
+            document.getElementById('availablePoliciesCount').innerHTML = `<strong>${newPolicies.length} new policies available</strong> for import <span style="color: #666;">(${existingPolicies.length} already exist)</span>`;
 
             // Render policies list with clickable cards
             const listContainer = document.getElementById('importPoliciesList');
@@ -1279,28 +1455,64 @@
         // Policy Detection Function - now uses server-side data
         window.getExistingPolicyNumbers = async function() {
             try {
-                console.log('🔍 Getting existing policy numbers...');
+                console.log('🔍 EXISTENCE CHECK: Getting existing policy numbers...');
 
                 // Use PolicyDataManager directly for consistency
                 if (window.policyDB) {
                     const policies = await window.policyDB.getAllPolicies();
+                    console.log('🔍 EXISTENCE CHECK: Retrieved', policies.length, 'total policies from database');
+
                     const existingNumbers = new Set();
 
-                    policies.forEach(policy => {
-                        if (policy.policyNumber) existingNumbers.add(policy.policyNumber);
-                        if (policy.policy_number) existingNumbers.add(policy.policy_number);
-                        if (policy.id && /^\d+$/.test(policy.id)) existingNumbers.add(policy.id); // Numeric IDs
+                    policies.forEach((policy, index) => {
+                        // Log first few policies for debugging
+                        if (index < 3) {
+                            console.log('🔍 EXISTENCE CHECK: Policy', index, 'structure:', {
+                                id: policy.id,
+                                policy_number: policy.policy_number,
+                                policyNumber: policy.policyNumber,
+                                insured_name: policy.insured_name,
+                                clientName: policy.clientName,
+                                carrier: policy.carrier
+                            });
+                        }
+
+                        // Check all possible policy number fields
+                        if (policy.policyNumber && policy.policyNumber.trim()) {
+                            existingNumbers.add(policy.policyNumber.trim());
+                        }
+                        if (policy.policy_number && policy.policy_number.trim()) {
+                            existingNumbers.add(policy.policy_number.trim());
+                        }
+                        if (policy.id && policy.id.trim() && /^\d+$/.test(policy.id.trim())) {
+                            existingNumbers.add(policy.id.trim()); // Numeric IDs
+                        }
+                        // Also check if ID looks like a policy number (like "POL966740" -> "966740")
+                        if (policy.id && policy.id.includes('POL')) {
+                            const numericPart = policy.id.replace(/[^0-9]/g, '');
+                            if (numericPart) {
+                                existingNumbers.add(numericPart);
+                            }
+                        }
+                        // Handle policy IDs that start with "policy-"
+                        if (policy.id && policy.id.startsWith('policy-')) {
+                            const numericPart = policy.id.replace('policy-', '');
+                            if (numericPart) {
+                                existingNumbers.add(numericPart);
+                            }
+                        }
                     });
 
                     const numbersArray = Array.from(existingNumbers);
-                    console.log('📋 Found', numbersArray.length, 'existing policy numbers:', numbersArray.slice(0, 10), '...');
+                    console.log('📋 EXISTENCE CHECK: Found', numbersArray.length, 'unique existing policy numbers:', numbersArray.sort());
                     return numbersArray;
                 } else {
-                    console.warn('❌ PolicyDataManager not available');
+                    console.warn('❌ EXISTENCE CHECK: PolicyDataManager not available');
                     return [];
                 }
             } catch (error) {
-                console.error('❌ Error getting existing policy numbers:', error);
+                console.error('❌ EXISTENCE CHECK: Error getting existing policy numbers:', error);
+                console.error('❌ EXISTENCE CHECK: Error stack:', error.stack);
                 return [];
             }
         };
@@ -1597,12 +1809,36 @@
                     console.log('✅ Found', existingPolicyNumbers.length, 'existing policy numbers:', existingPolicyNumbers);
 
                     // Mark policies as existing if they match
-                    crmPolicies.forEach(policy => {
-                        policy.exists = existingPolicyNumbers.includes(policy.policy_number);
+                    console.log('🔍 COMPARISON: Checking', crmPolicies.length, 'CRM policies against', existingPolicyNumbers.length, 'existing numbers');
+                    crmPolicies.forEach((policy, index) => {
+                        // Check multiple ways to match policy numbers
+                        const crmPolicyNumber = policy.policy_number?.trim();
+                        const crmId = policy.id?.trim();
+
+                        // Log first few for debugging
+                        if (index < 5) {
+                            console.log('🔍 COMPARISON: CRM Policy', index, ':', {
+                                id: crmId,
+                                policy_number: crmPolicyNumber,
+                                insured_name: policy.insured_name
+                            });
+                        }
+
+                        policy.exists = existingPolicyNumbers.includes(crmPolicyNumber) ||
+                                      existingPolicyNumbers.includes(crmId) ||
+                                      (crmPolicyNumber && existingPolicyNumbers.some(existing =>
+                                          existing === crmPolicyNumber ||
+                                          existing.endsWith(crmPolicyNumber) ||
+                                          crmPolicyNumber.endsWith(existing)
+                                      ));
+
                         if (policy.exists) {
-                            console.log('🔸 Policy already exists:', policy.policy_number, '-', policy.insured_name);
+                            console.log('🔸 MATCH FOUND: Policy already exists:', crmPolicyNumber || crmId, '-', policy.insured_name);
                         }
                     });
+
+                    const existingCount = crmPolicies.filter(p => p.exists).length;
+                    console.log('📊 COMPARISON RESULT:', existingCount, 'out of', crmPolicies.length, 'CRM policies already exist');
 
                     const newPoliciesCount = crmPolicies.filter(p => !p.exists).length;
                     const existingPoliciesCount = crmPolicies.filter(p => p.exists).length;
@@ -2373,6 +2609,17 @@
                         container.innerHTML = '<div class="policies-grid"></div>';
                         const grid = container.querySelector('.policies-grid');
 
+                        // ENHANCED DEBUG: List all policy IDs and names for identification
+                        console.log('🚨 ALL POLICIES SUMMARY:', safePolicies.map(p => ({
+                            id: p.id,
+                            policy_number: p.policy_number,
+                            policyNumber: p.policyNumber,
+                            insured_name: p.insured_name,
+                            clientName: p.clientName,
+                            client_phone: p.client_phone,
+                            client_email: p.client_email
+                        })));
+
                         safePolicies.forEach(policy => {
                         // Create policy card HTML structure
                         const policyCard = document.createElement('div');
@@ -2418,7 +2665,9 @@
                         // DEBUG: Log for target policies - match ANY of these policies
                         if ((policy.id === 'POLICY') || (policy.id === 'POL966740') ||
                             (policy.policyNumber === 'POLICY') || (policy.policyNumber === 'POL966740') ||
-                            (policy.clientName && (policy.clientName.includes('APPROVED FREIGHT') || policy.clientName.includes('ADI EXPRESS')))) {
+                            (policy.policy_number === 'POLICY') || (policy.policy_number === 'POL966740') ||
+                            (policy.clientName && (policy.clientName.includes('APPROVED FREIGHT') || policy.clientName.includes('ADI EXPRESS'))) ||
+                            (policy.insured_name && (policy.insured_name.includes('APPROVED FREIGHT') || policy.insured_name.includes('ADI EXPRESS') || policy.insured_name.includes('EXPRESS')))) {
 
                             console.log('🚨 TARGET POLICY DEBUG - Full Policy Object:', policy);
                             console.log('🚨 TARGET POLICY DEBUG - All fields:', {
@@ -4316,14 +4565,64 @@ contact@vigagency.com`;
 
                         // Check which policies already exist using unified function
                         let existingPolicyNumbers = [];
+                        console.log('🔍 STEP 1: About to call getExistingPolicyNumbers...');
+                        console.log('🔍 STEP 1: Function available?', typeof window.getExistingPolicyNumbers === 'function');
+                        console.log('🔍 STEP 1: PolicyDB available?', !!window.policyDB);
+
                         if (typeof window.getExistingPolicyNumbers === 'function') {
+                            console.log('🔍 STEP 2: Calling getExistingPolicyNumbers...');
                             existingPolicyNumbers = await window.getExistingPolicyNumbers();
+                            console.log('🔍 STEP 3: getExistingPolicyNumbers returned:', existingPolicyNumbers);
+
+                            // MANUAL TEST: Also directly check policies from policyDB
+                            if (window.policyDB) {
+                                console.log('🧪 MANUAL TEST: Direct PolicyDB check...');
+                                const directPolicies = await window.policyDB.getAllPolicies();
+                                console.log('🧪 MANUAL TEST: Found', directPolicies.length, 'direct policies');
+
+                                // Log first few policies
+                                directPolicies.slice(0, 3).forEach((policy, i) => {
+                                    console.log('🧪 MANUAL TEST: Direct Policy', i, ':', {
+                                        id: policy.id,
+                                        policy_number: policy.policy_number,
+                                        policyNumber: policy.policyNumber,
+                                        insured_name: policy.insured_name,
+                                        clientName: policy.clientName
+                                    });
+                                });
+
+                                // Check if specific policies exist
+                                const pol966740 = directPolicies.find(p => p.id === 'POL966740' || p.policyNumber === 'POL966740' || p.policy_number === 'POL966740');
+                                const policy947869406 = directPolicies.find(p => p.policyNumber === '947869406' || p.policy_number === '947869406' || p.id === '947869406');
+                                const policyMain = directPolicies.find(p => p.id === 'POLICY' || p.policyNumber === 'POLICY' || p.policy_number === 'POLICY');
+
+                                console.log('🧪 MANUAL TEST: POL966740 exists?', !!pol966740);
+                                console.log('🧪 MANUAL TEST: 947869406 exists?', !!policy947869406);
+                                console.log('🧪 MANUAL TEST: POLICY exists?', !!policyMain);
+                            }
                         } else {
-                            console.warn('getExistingPolicyNumbers function not available, using empty array');
+                            console.warn('❌ STEP 2: getExistingPolicyNumbers function not available, using empty array');
                         }
-                        crmPolicies.forEach(policy => {
-                            policy.exists = existingPolicyNumbers.includes(policy.policy_number);
+                        console.log('🔍 COMPARISON: Checking', crmPolicies.length, 'CRM policies against', existingPolicyNumbers.length, 'existing numbers');
+                        crmPolicies.forEach((policy, index) => {
+                            const crmPolicyNumber = policy.policy_number?.trim();
+                            const crmId = policy.id?.trim();
+
+                            policy.exists = existingPolicyNumbers.includes(crmPolicyNumber) ||
+                                          existingPolicyNumbers.includes(crmId) ||
+                                          (crmPolicyNumber && existingPolicyNumbers.some(existing =>
+                                              existing === crmPolicyNumber ||
+                                              existing.endsWith(crmPolicyNumber) ||
+                                              crmPolicyNumber.endsWith(existing)
+                                          ));
+
+                            if (policy.exists && index < 5) {
+                                console.log('🔸 MATCH FOUND: Policy already exists:', crmPolicyNumber || crmId, '-', policy.insured_name);
+                            }
                         });
+
+                        const existingCount = crmPolicies.filter(p => p.exists).length;
+                        console.log('📊 COMPARISON RESULT:', existingCount, 'out of', crmPolicies.length, 'CRM policies already exist');
 
                         // Use the modern display system
                         if (typeof window.displayCRMPoliciesWithBanner === 'function') {
@@ -4753,6 +5052,17 @@ contact@vigagency.com`;
                 return;
             }
 
+            // ENHANCED DEBUG: List all policy IDs and names for identification
+            console.log('🚨 ALL POLICIES SUMMARY:', policies.map(p => ({
+                id: p.id,
+                policy_number: p.policy_number,
+                policyNumber: p.policyNumber,
+                insured_name: p.insured_name,
+                clientName: p.clientName,
+                client_phone: p.client_phone,
+                client_email: p.client_email
+            })));
+
             policies.forEach(policy => {
                 const policyCard = document.createElement('div');
                 policyCard.className = 'policy-card';
@@ -4772,6 +5082,35 @@ contact@vigagency.com`;
                                   (policy.insured && typeof policy.insured === 'object' && policy.insured['Name/Business Name']) ||
                                   (policy.insured && typeof policy.insured === 'string' ? policy.insured : null) ||
                                   (typeof policy.contact === 'object' && policy.contact && typeof policy.contact !== 'string' ? policy.contact['Full Name'] || policy.contact.name : null) || 'Unknown';
+
+                // DEBUG: Log for target policies - match ANY of these policies
+                if ((policy.id === 'POLICY') || (policy.id === 'POL966740') ||
+                    (policy.policyNumber === 'POLICY') || (policy.policyNumber === 'POL966740') ||
+                    (policy.policy_number === 'POLICY') || (policy.policy_number === 'POL966740') ||
+                    (clientName && typeof clientName === 'string' && (clientName.includes('APPROVED FREIGHT') || clientName.includes('ADI EXPRESS') || clientName.includes('EXPRESS')))) {
+
+                    console.log('🚨 TARGET POLICY DEBUG - Full Policy Object:', policy);
+                    console.log('🚨 TARGET POLICY DEBUG - All fields:', {
+                        'id': policy.id,
+                        'clientName': clientName,
+                        'policyNumber': policy.policyNumber,
+                        'policy_number': policy.policy_number,
+                        'insured_name': policy.insured_name,
+                        'phone fields': {
+                            'client_phone': policy.client_phone,
+                            'phone': policy.phone,
+                            'clientPhone': policy.clientPhone,
+                            'contact.Phone Number': policy.contact?.['Phone Number']
+                        },
+                        'email fields': {
+                            'client_email': policy.client_email,
+                            'email': policy.email,
+                            'clientEmail': policy.clientEmail,
+                            'contact.Email Address': policy.contact?.['Email Address']
+                        },
+                        'ALL_KEYS': Object.keys(policy)
+                    });
+                }
 
                 // AGGRESSIVE field mapping - check ALL possible locations for phone/email
                 let clientPhone = 'N/A';
@@ -5537,9 +5876,38 @@ contact@vigagency.com`;
         }
 
         // Add Policy Modal Functions
+        function populateFormFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const formFields = {
+                'newPolicyNumber': 'policyNumber',
+                'newClientPhone': 'clientPhone',
+                'newClientName': 'clientName',
+                'newClientEmail': 'clientEmail',
+                'newExpirationDate': 'expirationDate',
+                'newEffectiveDate': 'effectiveDate',
+                'newCarrier': 'carrier',
+                'newPolicyType': 'policyType',
+                'newClientAddress': 'clientAddress'
+            };
+
+            Object.entries(formFields).forEach(([fieldId, paramName]) => {
+                const field = document.getElementById(fieldId);
+                const value = urlParams.get(paramName);
+                if (field && value) {
+                    field.value = decodeURIComponent(value);
+                    console.log(`📝 Pre-filled ${fieldId} with: "${field.value}"`);
+                }
+            });
+        }
+
         function openAddPolicyModal() {
             const modal = document.getElementById('addPolicyModal');
             modal.classList.add('active');
+
+            // Auto-populate form from URL if coming from redirect
+            if (window.location.search) {
+                setTimeout(populateFormFromURL, 100);
+            }
 
             // Set default effective date to today
             const today = new Date().toISOString().split('T')[0];
@@ -5872,10 +6240,21 @@ contact@vigagency.com`;
                                     console.warn('getExistingPolicyNumbers function not available, using empty array');
                                 }
 
-                                crmPolicies.forEach(policy => {
-                                    policy.exists = existingPolicyNumbers.includes(policy.policy_number);
-                                    if (policy.exists) {
-                                        console.log('✅ Found existing policy:', policy.policy_number, '-', policy.insured_name);
+                                console.log('🔍 ENHANCED CHECK: Comparing policies against', existingPolicyNumbers.length, 'existing numbers');
+                                crmPolicies.forEach((policy, index) => {
+                                    const crmPolicyNumber = policy.policy_number?.trim();
+                                    const crmId = policy.id?.trim();
+
+                                    policy.exists = existingPolicyNumbers.includes(crmPolicyNumber) ||
+                                                  existingPolicyNumbers.includes(crmId) ||
+                                                  (crmPolicyNumber && existingPolicyNumbers.some(existing =>
+                                                      existing === crmPolicyNumber ||
+                                                      existing.endsWith(crmPolicyNumber) ||
+                                                      crmPolicyNumber.endsWith(existing)
+                                                  ));
+
+                                    if (policy.exists && index < 3) {
+                                        console.log('✅ ENHANCED CHECK MATCH:', crmPolicyNumber || crmId, '-', policy.insured_name);
                                     }
                                 });
 
@@ -5907,13 +6286,31 @@ contact@vigagency.com`;
                                         if (importContainer && crmPolicies.length > 0) {
                                             // RE-CHECK existing policies just before display to ensure accuracy
                                             console.log('🔄 Final check for existing policies before display...');
+                                            console.log('🔍 FINAL CHECK: getExistingPolicyNumbers available?', typeof window.getExistingPolicyNumbers === 'function');
+                                            console.log('🔍 FINAL CHECK: policyDB available?', !!window.policyDB);
+
                                             if (typeof window.getExistingPolicyNumbers === 'function') {
+                                                console.log('🔍 FINAL CHECK: Calling getExistingPolicyNumbers...');
                                                 window.getExistingPolicyNumbers()
                                                     .then(finalExistingNumbers => {
                                                         console.log('📋 Final existing policy numbers:', finalExistingNumbers.slice(0, 10));
 
-                                                        crmPolicies.forEach(policy => {
-                                                            policy.exists = finalExistingNumbers.includes(policy.policy_number);
+                                                        console.log('🔍 FINAL CHECK: Comparing policies against', finalExistingNumbers.length, 'existing numbers');
+                                                        crmPolicies.forEach((policy, index) => {
+                                                            const crmPolicyNumber = policy.policy_number?.trim();
+                                                            const crmId = policy.id?.trim();
+
+                                                            policy.exists = finalExistingNumbers.includes(crmPolicyNumber) ||
+                                                                          finalExistingNumbers.includes(crmId) ||
+                                                                          (crmPolicyNumber && finalExistingNumbers.some(existing =>
+                                                                              existing === crmPolicyNumber ||
+                                                                              existing.endsWith(crmPolicyNumber) ||
+                                                                              crmPolicyNumber.endsWith(existing)
+                                                                          ));
+
+                                                            if (policy.exists && index < 3) {
+                                                                console.log('🔸 FINAL CHECK MATCH:', crmPolicyNumber || crmId, '-', policy.insured_name);
+                                                            }
                                                         });
 
                                                         console.log('📋 Final check - existing policies found:', crmPolicies.filter(p => p.exists).length);
@@ -5935,22 +6332,30 @@ contact@vigagency.com`;
                                             // Function to continue with the display
                                             function continueDisplay() {
 
-                                        // Force clear any loading messages
-                                        connectionMessage.innerHTML = `✅ Successfully loaded ${crmPolicies.length} policies from CRM`;
-                                        connectionMessage.style.display = 'block';
-                                        console.log('✅ Fallback: Updated connection message to show success');
-
-                                        // Show the import actions and policies list
+                                        // CRITICAL: Hide the loading state completely and show import sections
+                                        const crmConnectionStatus = document.getElementById('crmConnectionStatus');
                                         const importActions = document.getElementById('importActions');
+
+                                        if (crmConnectionStatus) {
+                                            crmConnectionStatus.style.display = 'none';
+                                            console.log('✅ Fallback: Hidden loading spinner section');
+                                        }
+
                                         if (importActions) {
                                             importActions.style.display = 'block';
+                                            console.log('✅ Fallback: Showed import actions section');
                                         }
-                                        importContainer.style.display = 'block';
 
-                                        // Update available policies count
+                                        importContainer.style.display = 'block';
+                                        console.log('✅ Fallback: Showed policies list container');
+
+                                        // Update available policies count - show only new policies
+                                        const newPoliciesCount = crmPolicies.filter(p => !p.exists).length;
+                                        const existingPoliciesCount = crmPolicies.filter(p => p.exists).length;
                                         const countElement = document.getElementById('availablePoliciesCount');
                                         if (countElement) {
-                                            countElement.textContent = `${crmPolicies.length} policies available`;
+                                            countElement.innerHTML = `<strong>${newPoliciesCount} new policies available</strong> for import <span style="color: #666;">(${existingPoliciesCount} already exist)</span>`;
+                                            console.log('✅ Updated count:', newPoliciesCount, 'new,', existingPoliciesCount, 'existing');
                                         }
 
                                         let policiesHtml = `<div class="crm-policies-grid" style="display: grid; gap: 15px; margin-top: 20px;">`;
@@ -5960,7 +6365,7 @@ contact@vigagency.com`;
                                             const policyExists = policy.exists || false;
                                             console.log('🎯 Policy', index, ':', policy.policy_number, '| exists:', policyExists, '| insured:', policy.insured_name);
                                             const cardStyle = policyExists ?
-                                                'border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #f5f5f5; opacity: 0.7; cursor: not-allowed;' :
+                                                'border: 2px solid #bdc3c7; padding: 15px; border-radius: 8px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); opacity: 0.6; cursor: not-allowed; position: relative;' :
                                                 'border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s ease; border-width: 1px;';
 
                                             const cardClass = policyExists ? 'policy-import-card existing-policy' : 'policy-import-card selectable-policy';
@@ -5985,7 +6390,7 @@ contact@vigagency.com`;
                                                                style="font-weight: bold; color: ${policyExists ? '#999' : '#2c3e50'}; flex: 1; cursor: ${policyExists ? 'not-allowed' : 'pointer'};"
                                                                onclick="${policyExists ? '' : 'event.stopPropagation(); togglePolicySelection(' + index + ');'}">
                                                             ${policy.policy_number} - ${policy.insured_name}
-                                                            ${policyExists ? '<span style="color: #e74c3c; font-size: 0.8em; margin-left: 10px;">[ALREADY EXISTS]</span>' : ''}
+                                                            ${policyExists ? '<span style="color: #e74c3c; font-size: 0.9em; font-weight: bold; margin-left: 10px; background: #ffeaea; padding: 2px 6px; border-radius: 4px; border: 1px solid #f5c6cb;">✓ ALREADY EXISTS</span>' : ''}
                                                         </label>
                                                     </div>
                                                     <div style="font-size: 0.9em; color: #666; line-height: 1.4;">
@@ -7189,15 +7594,25 @@ contact@vigagency.com`;
 
                     // Validate all fields
                     let isValid = true;
+                    console.log('🔍 Starting form validation...');
 
-                    isValid &= validateField('newPolicyNumber', validatePolicyNumber, 'Policy number must be at least 3 characters');
-                    isValid &= validateField('newClientPhone', validatePhone, 'Please enter a valid 10-digit phone number');
-                    isValid &= validateField('newClientName', validateRequired, 'Client name is required');
-                    isValid &= validateField('newClientEmail', validateEmail, 'Please enter a valid email address');
-                    isValid &= validateField('newExpirationDate', validateDate, 'Please select an expiration date');
-                    isValid &= validateField('newEffectiveDate', validateDate, 'Please select an effective date');
-                    isValid &= validateField('newCarrier', validateRequired, 'Please select a carrier');
-                    isValid &= validateField('newPolicyType', validateRequired, 'Please select a policy type');
+                    const validations = [
+                        { field: 'newPolicyNumber', validator: validatePolicyNumber, message: 'Policy number must be at least 3 characters' },
+                        { field: 'newClientPhone', validator: validatePhone, message: 'Please enter a valid 10-digit phone number' },
+                        { field: 'newClientName', validator: validateRequired, message: 'Client name is required' },
+                        { field: 'newClientEmail', validator: validateEmail, message: 'Please enter a valid email address' },
+                        { field: 'newExpirationDate', validator: validateDate, message: 'Please select an expiration date' },
+                        { field: 'newEffectiveDate', validator: validateDate, message: 'Please select an effective date' },
+                        { field: 'newCarrier', validator: validateRequired, message: 'Please select a carrier' },
+                        { field: 'newPolicyType', validator: validateRequired, message: 'Please select a policy type' }
+                    ];
+
+                    validations.forEach(({ field, validator, message }) => {
+                        const fieldValid = validateField(field, validator, message);
+                        const fieldValue = document.getElementById(field)?.value || '';
+                        console.log(`🔍 Field ${field}: ${fieldValid ? '✅' : '❌'} (value: "${fieldValue}")`);
+                        isValid &= fieldValid;
+                    });
 
                     // Validate expiration date is after effective date
                     const effectiveDate = new Date(document.getElementById('newEffectiveDate').value);
@@ -7212,27 +7627,100 @@ contact@vigagency.com`;
 
                     // Check for duplicate policy number (only when adding new policy)
                     const policyNumber = document.getElementById('newPolicyNumber').value.trim();
-                    const existingPolicy = window.policyDB.getPolicyByNumber(policyNumber);
+
+                    // Handle async policy lookup properly
+                    let existingPolicy = null;
+                    try {
+                        const policyLookup = window.policyDB.getPolicyByNumber(policyNumber);
+                        console.log('🔍 Policy lookup result type:', typeof policyLookup, policyLookup);
+
+                        if (policyLookup && typeof policyLookup.then === 'function') {
+                            // It's a Promise - we need to handle this differently
+                            console.log('🔍 Awaiting policy lookup...');
+                            existingPolicy = await policyLookup;
+                            console.log('🔍 Existing policy object (after await):', existingPolicy);
+                        } else {
+                            // It's a direct result
+                            existingPolicy = policyLookup;
+                            console.log('🔍 Existing policy object (direct):', existingPolicy);
+                        }
+                    } catch (error) {
+                        console.error('Error checking for duplicate policy:', error);
+                        existingPolicy = null;
+                    }
+
                     if (existingPolicy && !window.currentEditingPolicyId) {
                         const policyGroup = document.getElementById('newPolicyNumber').closest('.form-group');
                         policyGroup.classList.add('error');
-                        policyGroup.querySelector('.form-error').textContent = 'Policy number already exists';
+
+                        // Generate a suggested alternative policy number
+                        const currentYear = new Date().getFullYear();
+                        const baseNumber = policyNumber.replace(/\d+/g, ''); // Remove numbers
+                        let suggestedNumber = '';
+
+                        // Generate suggestion based on existing pattern
+                        if (policyNumber.includes('VIG-')) {
+                            const nextNum = String(Math.floor(Math.random() * 900) + 100).padStart(3, '0');
+                            suggestedNumber = `VIG-${currentYear}-${nextNum}`;
+                        } else if (policyNumber.includes('POL')) {
+                            const nextNum = String(Math.floor(Math.random() * 900000) + 100000);
+                            suggestedNumber = `POL${nextNum}`;
+                        } else {
+                            const nextNum = String(Math.floor(Math.random() * 900) + 100).padStart(3, '0');
+                            suggestedNumber = `${baseNumber}${currentYear}-${nextNum}`;
+                        }
+
+                        const clientName = existingPolicy.insured_name ||
+                                         existingPolicy.client_name ||
+                                         existingPolicy.name ||
+                                         existingPolicy.clientName ||
+                                         'No Client Name on File';
+
+                        console.log('🔍 Final client name resolved:', clientName);
+
+                        policyGroup.querySelector('.form-error').innerHTML = `
+                            ⚠️ Policy number <strong>${policyNumber}</strong> already exists.<br>
+                            Client: <strong>${clientName}</strong><br>
+                            <span style="color: #0066cc; cursor: pointer; font-weight: bold;" onclick="document.getElementById('newPolicyNumber').value='${suggestedNumber}'; this.parentElement.parentElement.classList.remove('error');">
+                                💡 Click here to use: ${suggestedNumber}
+                            </span>
+                        `;
                         isValid = false;
                     }
                     // When editing, check if policy number changed and conflicts
                     if (existingPolicy && window.currentEditingPolicyId) {
-                        const currentPolicy = window.policyDB.getPolicyById(window.currentEditingPolicyId);
+                        let currentPolicy = null;
+                        try {
+                            const currentPolicyLookup = window.policyDB.getPolicyById(window.currentEditingPolicyId);
+                            if (currentPolicyLookup && typeof currentPolicyLookup.then === 'function') {
+                                currentPolicy = await currentPolicyLookup;
+                            } else {
+                                currentPolicy = currentPolicyLookup;
+                            }
+                        } catch (error) {
+                            console.error('Error getting current policy:', error);
+                            currentPolicy = null;
+                        }
+
                         if (currentPolicy && currentPolicy.policy_number !== policyNumber) {
                             const policyGroup = document.getElementById('newPolicyNumber').closest('.form-group');
                             policyGroup.classList.add('error');
-                            policyGroup.querySelector('.form-error').textContent = 'Policy number already exists';
+                            policyGroup.querySelector('.form-error').innerHTML = `
+                                Policy number already exists for client: ${existingPolicy.insured_name || existingPolicy.client_name || 'Unknown Client'}.<br>
+                                Please choose a different policy number.
+                            `;
                             isValid = false;
                         }
                     }
 
+                    console.log('🔍 Overall validation result:', isValid ? '✅ VALID' : '❌ INVALID');
+
                     if (!isValid) {
+                        console.log('❌ Form validation failed - stopping submission');
                         return;
                     }
+
+                    console.log('✅ All validations passed - proceeding with save...');
 
                     // Save button loading state
                     const saveBtn = document.getElementById('savePolicyBtn');
@@ -7260,47 +7748,72 @@ contact@vigagency.com`;
                             }
                         };
 
+                        let saveResult;
                         if (window.currentEditingPolicyId) {
                             console.log('Updating existing policy:', window.currentEditingPolicyId, newPolicy);
                             // Update existing policy
-                            window.policyDB.updatePolicy(window.currentEditingPolicyId, newPolicy);
+                            saveResult = await window.policyDB.updatePolicy(window.currentEditingPolicyId, newPolicy);
                         } else {
                             console.log('Creating new policy:', newPolicy);
                             // Add to database
-                            const createdPolicy = window.policyDB.addPolicy(newPolicy);
+                            saveResult = await window.policyDB.addPolicy(newPolicy);
+                            console.log('✅ Policy creation result:', saveResult);
                         }
 
-                        // Simulate API delay for better UX
-                        setTimeout(() => {
-                            // Refresh the policies display
-                            window.allPolicies = window.policyDB.getAllPolicies();
-                            window.applyFilters();
-                            window.updateAdminStats();
+                        // Wait for save to complete before refreshing
+                        console.log('🔄 Refreshing policy display after save...');
 
-                            // Close modal and show success
-                            closeAddPolicyModal();
+                        try {
+                            // Get fresh data from database
+                            const freshPolicies = await window.policyDB.getAllPolicies();
+                            window.allPolicies = Array.isArray(freshPolicies) ? freshPolicies : [];
+                            window.filteredPolicies = [...window.allPolicies];
 
-                            let successMessage;
-                            if (window.currentEditingPolicyId) {
-                                successMessage = `Success!\n\nPolicy ${newPolicy.policy_number} has been updated successfully.\n\nClient: ${newPolicy.insured_name}\nCarrier: ${newPolicy.carrier}\nType: ${newPolicy.type}`;
-                                window.currentEditingPolicyId = null; // Reset editing ID
-                            } else {
-                                successMessage = `Success!\n\nPolicy ${newPolicy.policy_number} has been created successfully.\n\nClient: ${newPolicy.insured_name}\nCarrier: ${newPolicy.carrier}\nType: ${newPolicy.type}`;
+                            console.log('✅ Loaded', window.allPolicies.length, 'policies from database');
 
-                                // Check if client login is available (only for new policies)
-                                if (newPolicy.client_phone && newPolicy.client_phone.trim() !== '') {
-                                    successMessage += `\n\n🔐 Client Login Created:\nPolicy Number: ${newPolicy.policy_number}\nPhone: ${newPolicy.client_phone}`;
-                                } else {
-                                    successMessage += `\n\n⚠️ No client login created (missing phone number)`;
-                                }
+                            // Apply current filters
+                            if (typeof window.applyFilters === 'function') {
+                                window.applyFilters();
                             }
 
-                            alert(successMessage);
+                            // Update statistics
+                            if (typeof window.updateAdminStats === 'function') {
+                                window.updateAdminStats();
+                            }
 
-                            // Reset button
-                            saveBtn.disabled = false;
-                            saveBtn.innerHTML = originalText;
-                        }, 800);
+                            // Force display update
+                            if (typeof window.displayAllPolicies === 'function') {
+                                window.displayAllPolicies(window.filteredPolicies || window.allPolicies);
+                            }
+
+                            console.log('✅ Policy display refresh complete');
+                        } catch (error) {
+                            console.error('❌ Error refreshing display:', error);
+                        }
+
+                        // Close modal and show success
+                        closeAddPolicyModal();
+
+                        let successMessage;
+                        if (window.currentEditingPolicyId) {
+                            successMessage = `Success!\n\nPolicy ${newPolicy.policy_number} has been updated successfully.\n\nClient: ${newPolicy.insured_name}\nCarrier: ${newPolicy.carrier}\nType: ${newPolicy.type}`;
+                            window.currentEditingPolicyId = null; // Reset editing ID
+                        } else {
+                            successMessage = `Success!\n\nPolicy ${newPolicy.policy_number} has been created successfully.\n\nClient: ${newPolicy.insured_name}\nCarrier: ${newPolicy.carrier}\nType: ${newPolicy.type}`;
+
+                            // Check if client login is available (only for new policies)
+                            if (newPolicy.client_phone && newPolicy.client_phone.trim() !== '') {
+                                successMessage += `\n\n🔐 Client Login Created:\nPolicy Number: ${newPolicy.policy_number}\nPhone: ${newPolicy.client_phone}`;
+                            } else {
+                                successMessage += `\n\n⚠️ No client login created (missing phone number)`;
+                            }
+                        }
+
+                        alert(successMessage);
+
+                        // Reset button
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalText;
 
                     } catch (error) {
                         console.error('Error creating policy:', error);
