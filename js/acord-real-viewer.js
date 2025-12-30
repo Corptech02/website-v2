@@ -301,6 +301,74 @@ async function loadRealPDF(policyId, policyData) {
             console.error('❌ Description field not found or no policy data:', !!descField, !!policyData);
         }
 
+        // 🔥 FORCE UPDATE POLICY FIELDS - Ensure they are populated after form creation
+        console.log('🔥 FORCE UPDATE: Starting policy field population...');
+
+        // Auto liability row fields (y: 530)
+        const autoPolicyField = document.getElementById('field_autoPolicyNum');
+        const autoEffField = document.getElementById('field_autoEffDate');
+        const autoExpField = document.getElementById('field_autoExpDate');
+
+        // General Liability row fields (y: 437) - ABOVE the auto liability
+        const glPolicyField = document.getElementById('field_glPolicyNum');
+        const glEffField = document.getElementById('field_glEffDate');
+        const glExpField = document.getElementById('field_glExpDate');
+
+        // Top row fields (y: 686)
+        const topPolicyField = document.getElementById('field_otherPolicyNumAbove');
+        const topEffField = document.getElementById('field_otherEffDateAbove');
+        const topExpField = document.getElementById('field_otherExpDateAbove');
+
+        if (policyData) {
+            const policyNum = policyData.policy_number || policyData.policyNumber || '';
+            const effDate = formatDateForACORD(policyData.effective_date || policyData.effectiveDate || policyData.overview?.['Effective Date']) || '';
+            const expDate = formatDateForACORD(policyData.expiration_date || policyData.expirationDate || policyData.overview?.['Expiration Date']) || '';
+
+            console.log('🔥 FORCE UPDATE: Policy data:', { policyNum, effDate, expDate });
+
+            // Update General Liability row (ABOVE auto liability)
+            if (glPolicyField) {
+                glPolicyField.value = policyNum;
+                console.log('✅ GL Policy Number field populated:', policyNum);
+            }
+            if (glEffField) {
+                glEffField.value = effDate;
+                console.log('✅ GL Effective Date field populated:', effDate);
+            }
+            if (glExpField) {
+                glExpField.value = expDate;
+                console.log('✅ GL Expiration Date field populated:', expDate);
+            }
+
+            // Update auto liability row
+            if (autoPolicyField) {
+                autoPolicyField.value = policyNum;
+                console.log('✅ Auto Policy Number field populated:', policyNum);
+            }
+            if (autoEffField) {
+                autoEffField.value = effDate;
+                console.log('✅ Auto Effective Date field populated:', effDate);
+            }
+            if (autoExpField) {
+                autoExpField.value = expDate;
+                console.log('✅ Auto Expiration Date field populated:', expDate);
+            }
+
+            // Update top row
+            if (topPolicyField) {
+                topPolicyField.value = policyNum;
+                console.log('✅ Top Policy Number field populated:', policyNum);
+            }
+            if (topEffField) {
+                topEffField.value = effDate;
+                console.log('✅ Top Effective Date field populated:', effDate);
+            }
+            if (topExpField) {
+                topExpField.value = expDate;
+                console.log('✅ Top Expiration Date field populated:', expDate);
+            }
+        }
+
     } catch (error) {
         console.error('Error loading PDF:', error);
         // Fallback to embedded PDF
@@ -601,21 +669,29 @@ function createRealFormFields(policyId, policyData) {
 
         // === AUTOMOBILE LIABILITY FIELDS ===
         { id: 'autoInsurer', x: 23, y: 530, width: 23, height: 16,
-          value: (policyData?.policyType === 'commercial-auto' || policyData?.overview?.['Policy Type'] === 'Commercial Auto') ? 'A' : '' },
+          value: 'A' },
         { id: 'autoAddlInsd', x: 229, y: 530, width: 23, height: 16,
           value: '' },
         { id: 'autoSubrWvd', x: 252, y: 530, width: 23, height: 16,
           value: '' },
         { id: 'autoPolicyNum', x: 281, y: 530, width: 146, height: 16,
-          value: (policyData?.policyType === 'commercial-auto' || policyData?.overview?.['Policy Type'] === 'Commercial Auto') ? (policyData?.policyNumber || '') : '' },
+          value: (function() {
+              const policyNum = policyData?.policy_number || policyData?.policyNumber || '';
+              console.log('🔥 AUTO ROW DEBUG: Policy Number =', policyNum);
+              return policyNum;
+          })() },
         { id: 'autoEffDate', x: 430, y: 530, width: 61, height: 16,
-          value: (policyData?.policyType === 'commercial-auto' && policyData?.effectiveDate) ?
-                 formatDateForACORD(policyData.effectiveDate) :
-                 (policyData?.overview?.['Effective Date'] ? formatDateForACORD(policyData.overview['Effective Date']) : '') },
+          value: (function() {
+              const effDate = formatDateForACORD(policyData?.effective_date || policyData?.effectiveDate || policyData?.overview?.['Effective Date']) || '';
+              console.log('🔥 AUTO ROW DEBUG: Effective Date =', effDate);
+              return effDate;
+          })() },
         { id: 'autoExpDate', x: 491, y: 530, width: 61, height: 16,
-          value: (policyData?.policyType === 'commercial-auto' && policyData?.expirationDate) ?
-                 formatDateForACORD(policyData.expirationDate) :
-                 (policyData?.overview?.['Expiration Date'] ? formatDateForACORD(policyData.overview['Expiration Date']) : '') },
+          value: (function() {
+              const expDate = formatDateForACORD(policyData?.expiration_date || policyData?.expirationDate || policyData?.overview?.['Expiration Date']) || '';
+              console.log('🔥 AUTO ROW DEBUG: Expiration Date =', expDate);
+              return expDate;
+          })() },
 
         // === AUTO LIABILITY LIMITS (ALL MISSING FIELDS) ===
         { id: 'autoCombinedSingle', x: 684, y: 499, width: 83, height: 16,
@@ -695,14 +771,20 @@ function createRealFormFields(policyId, policyData) {
 
         // === ADDITIONAL TEXT BOXES ABOVE THE HORIZONTAL ROW (y: 686) - MOTOR TRUCK CARGO ===
         { id: 'otherInsurerAbove', x: 23, y: 686, width: 23, height: 16,
-          value: (function() {
-              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
-              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') ? 'A' : '';
-          })() },
+          value: 'A' },
         { id: 'otherDescriptionAbove', x: 52, y: 686, width: 173, height: 16,
           value: (function() {
               const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
-              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') ? 'MOTOR TRUCK CARGO' : '';
+              // Show cargo if exists, otherwise show primary policy type
+              if (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') {
+                  return 'MOTOR TRUCK CARGO';
+              }
+              // Return primary policy description based on policy type
+              const policyType = policyData?.type || policyData?.policyType || '';
+              if (policyType.includes('auto') || policyType.includes('commercial')) {
+                  return 'COMMERCIAL AUTO LIABILITY';
+              }
+              return 'GENERAL LIABILITY';
           })() },
         { id: 'otherAddlInsdAbove', x: 229, y: 686, width: 23, height: 16,
           value: '' },
@@ -710,27 +792,35 @@ function createRealFormFields(policyId, policyData) {
           value: '' },
         { id: 'otherPolicyNumAbove', x: 281, y: 686, width: 146, height: 16,
           value: (function() {
-              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
-              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') ?
-                     (policyData?.policy_number || policyData?.policyNumber || '') : '';
+              const policyNum = policyData?.policy_number || policyData?.policyNumber || '';
+              console.log('🔥 TOP ROW DEBUG: Policy Number =', policyNum);
+              return policyNum;
           })() },
         { id: 'otherEffDateAbove', x: 430, y: 686, width: 61, height: 16,
           value: (function() {
-              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
-              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') ?
-                     formatDateForACORD(policyData?.effective_date) : '';
+              const effDate = formatDateForACORD(policyData?.effective_date) || '';
+              console.log('🔥 TOP ROW DEBUG: Effective Date =', effDate);
+              return effDate;
           })() },
         { id: 'otherExpDateAbove', x: 491, y: 686, width: 61, height: 16,
           value: (function() {
-              const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
-              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') ?
-                     formatDateForACORD(policyData?.expiration_date) : '';
+              const expDate = formatDateForACORD(policyData?.expiration_date) || '';
+              console.log('🔥 TOP ROW DEBUG: Expiration Date =', expDate);
+              return expDate;
           })() },
         { id: 'otherLimitsAbove', x: 552, y: 686, width: 83, height: 16,
           value: (function() {
               const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
-              return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') ?
-                     `LIMIT $${cargoLimit}` : '';
+              // If there's cargo coverage, show it
+              if (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') {
+                  return `LIMIT $${cargoLimit}`;
+              }
+              // Otherwise show primary liability limit
+              const liabilityLimit = policyData?.coverage?.liability_limits || policyData?.coverage?.['Liability Limits'] || '';
+              if (liabilityLimit) {
+                  return `$${liabilityLimit}`;
+              }
+              return '';
           })() },
 
         // === NON OWNED TRAILER PHYSICAL DAMAGE ROW (y: 718) ===
