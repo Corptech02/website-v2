@@ -5699,32 +5699,44 @@ contact@vigagency.com`;
 
             // Function to render individual holder card
             const renderHolderCard = (holder) => `
-                <div onclick="selectCertificateHolder('${holder.name.replace(/'/g, "\\'")}', '${holder.address}', '${holder.cityStateZip}', '${holder.email}')"
-                     style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 16px; cursor: pointer; transition: all 0.3s ease; background: white; margin-bottom: 12px; position: relative;"
-                     onmouseover="this.style.borderColor='#059669'; this.style.backgroundColor='#f0fdf4';"
-                     onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='white';">
+                <div style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 16px; background: white; margin-bottom: 12px; position: relative; transition: all 0.3s ease;">
                     ${holder.isGlobal ? `
-                        <div style="position: absolute; top: 8px; right: 8px; background: #2196f3; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                        <div style="position: absolute; top: 8px; right: 8px; background: #2196f3; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; z-index: 10;">
                             <i class="fas fa-globe" style="margin-right: 4px;"></i>GLOBAL
                         </div>
-                    ` : ''}
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex: 1; padding-right: 60px;">
-                            <h4 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
-                                ${holder.name}
-                            </h4>
-                            <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
-                                ${holder.address}
-                            </p>
-                            <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
-                                ${holder.cityStateZip}
-                            </p>
-                            <p style="margin: 0; color: #059669; font-size: 14px; font-weight: 500;">
-                                ${holder.email}
-                            </p>
+                    ` : `
+                        <div style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                            <button onclick="event.stopPropagation(); deleteCertificateHolder('${holder.name.replace(/'/g, "\\'")}', '${holder.email}')"
+                                    style="background: #dc2626; color: white; border: none; padding: 6px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: background 0.2s ease;"
+                                    onmouseover="this.style.background='#b91c1c'"
+                                    onmouseout="this.style.background='#dc2626'"
+                                    title="Delete certificate holder">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                        <div style="color: #059669; font-size: 18px;">
-                            <i class="fas fa-chevron-right"></i>
+                    `}
+                    <div onclick="selectCertificateHolder('${holder.name.replace(/'/g, "\\'")}', '${holder.address}', '${holder.cityStateZip}', '${holder.email}')"
+                         style="cursor: pointer; padding-right: ${holder.isGlobal ? '60px' : '50px'};"
+                         onmouseover="this.closest('div').style.borderColor='#059669'; this.closest('div').style.backgroundColor='#f0fdf4';"
+                         onmouseout="this.closest('div').style.borderColor='#e5e7eb'; this.closest('div').style.backgroundColor='white';">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
+                                    ${holder.name}
+                                </h4>
+                                <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
+                                    ${holder.address}
+                                </p>
+                                <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
+                                    ${holder.cityStateZip}
+                                </p>
+                                <p style="margin: 0; color: #059669; font-size: 14px; font-weight: 500;">
+                                    ${holder.email}
+                                </p>
+                            </div>
+                            <div style="color: #059669; font-size: 18px; margin-top: 8px;">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -5824,6 +5836,46 @@ contact@vigagency.com`;
             const popup = document.getElementById('certificateHoldersPopup');
             if (popup) {
                 popup.remove();
+            }
+        };
+
+        // Function to delete a saved certificate holder
+        window.deleteCertificateHolder = function(holderName, holderEmail) {
+            console.log('🗑️ Attempting to delete certificate holder:', holderName, holderEmail);
+
+            // Confirm deletion
+            if (!confirm(`Are you sure you want to delete "${holderName}"?`)) {
+                console.log('🚫 Delete cancelled by user');
+                return;
+            }
+
+            // Find and remove the certificate holder
+            const initialCount = window.savedCertificateHolders.length;
+            window.savedCertificateHolders = window.savedCertificateHolders.filter(holder =>
+                !(holder.name === holderName && holder.email === holderEmail)
+            );
+
+            const finalCount = window.savedCertificateHolders.length;
+            const deleted = initialCount > finalCount;
+
+            if (deleted) {
+                // Save to localStorage
+                try {
+                    localStorage.setItem('vigagency_saved_certificate_holders', JSON.stringify(window.savedCertificateHolders));
+                    console.log('✅ Certificate holder deleted and localStorage updated:', holderName);
+
+                    // Refresh the popup display
+                    const searchInput = document.getElementById('certificateHolderSearch');
+                    const searchTerm = searchInput ? searchInput.value : '';
+                    window.updateCertificateHoldersDisplay(searchTerm);
+
+                } catch (error) {
+                    console.error('❌ Failed to update localStorage after deletion:', error);
+                    alert('Failed to delete certificate holder. Please try again.');
+                }
+            } else {
+                console.warn('⚠️ Certificate holder not found for deletion:', holderName, holderEmail);
+                alert('Certificate holder not found. It may have already been deleted.');
             }
         };
 
