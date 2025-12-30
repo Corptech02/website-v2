@@ -1956,8 +1956,14 @@
         };
 
         window.addDriver = function() {
+            console.log('🚨 ADD DRIVER DEBUG: Function called');
+            console.log('🚨 ADD DRIVER DEBUG: currentEditingPolicyId:', window.currentEditingPolicyId);
+            console.log('🚨 ADD DRIVER DEBUG: allPolicies available:', !!window.allPolicies);
+            console.log('🚨 ADD DRIVER DEBUG: allPolicies length:', window.allPolicies?.length || 0);
+
             if (!window.currentEditingPolicyId) {
                 console.error('No policy currently being edited');
+                console.log('🚨 ADD DRIVER DEBUG: Available window properties containing "edit":', Object.keys(window).filter(k => k.toLowerCase().includes('edit')));
                 return;
             }
 
@@ -3643,6 +3649,32 @@ contact@vigagency.com`;
 
             // Store the policy ID for editing
             window.currentEditingPolicyId = policyId;
+            console.log('🔑 CRITICAL: Set currentEditingPolicyId to:', window.currentEditingPolicyId);
+
+            // PROTECTION: Prevent accidental clearing of editing ID
+            const originalSetInterval = window.setInterval;
+            const originalSetTimeout = window.setTimeout;
+
+            // Monitor any attempts to clear the editing ID
+            Object.defineProperty(window, 'currentEditingPolicyId', {
+                get() {
+                    return this._currentEditingPolicyId;
+                },
+                set(value) {
+                    if (value === null && this._currentEditingPolicyId !== null) {
+                        console.warn('🚨 WARNING: Attempt to clear currentEditingPolicyId from:', this._currentEditingPolicyId, 'to:', value);
+                        console.trace('Clear attempt stack trace:');
+                    }
+                    this._currentEditingPolicyId = value;
+                    console.log('🔑 currentEditingPolicyId changed to:', value);
+                }
+            });
+            window.currentEditingPolicyId = policyId; // Set initial value
+
+            // Verify it was set correctly
+            setTimeout(() => {
+                console.log('🔑 VERIFY: currentEditingPolicyId after 100ms:', window.currentEditingPolicyId);
+            }, 100);
 
             // Clear and populate form fields
             const formFields = [
@@ -3818,8 +3850,34 @@ contact@vigagency.com`;
                     // Use the populateDrivers function instead of addDriver to avoid duplicates
                     if (window.populateDrivers) {
                         window.populateDrivers(validDrivers);
+
+                        // CRITICAL FIX: Ensure drivers container is visible after population
+                        setTimeout(() => {
+                            const driversContainer = document.getElementById('driversList');
+                            if (driversContainer) {
+                                console.log('🔧 DISPLAY FIX: Drivers container state after population:');
+                                console.log('  - Container found:', !!driversContainer);
+                                console.log('  - Display style:', driversContainer.style.display);
+                                console.log('  - Visibility:', driversContainer.style.visibility);
+                                console.log('  - HTML content length:', driversContainer.innerHTML.length);
+                                console.log('  - Child elements:', driversContainer.children.length);
+
+                                // Force display if hidden
+                                if (driversContainer.style.display === 'none' || driversContainer.style.visibility === 'hidden') {
+                                    console.log('🔧 DISPLAY FIX: Forcing drivers container to be visible');
+                                    driversContainer.style.display = 'grid';
+                                    driversContainer.style.visibility = 'visible';
+                                }
+                            }
+                        }, 100);
                     } else {
                         console.warn('❌ populateDrivers function not found');
+                    }
+                } else {
+                    console.log('👥 No valid drivers to display');
+                    // Even if no drivers, ensure container shows "No drivers listed" message
+                    if (window.populateDrivers) {
+                        window.populateDrivers([]);
                     }
                 }
 
