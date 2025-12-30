@@ -1574,335 +1574,7 @@
             }
         };
 
-        // CRM Fetch Function - defined here for immediate availability
-        window.fetchCRMPolicies = async function() {
-            console.log('🚀 CRM Connection Started');
-            try {
-                document.getElementById('connectionMessage').innerHTML = 'Connecting to CRM system...';
-
-                // Use the alternative enhanced CRM endpoint to bypass caching issues
-                const timestamp = new Date().getTime();
-                const apiUrl = `/api/crm-enriched-data?t=${timestamp}`;
-                console.log('🔗 Fetching from alternative endpoint:', apiUrl);
-                console.log('🔗 Current domain:', window.location.host);
-                console.log('🔗 Current protocol:', window.location.protocol);
-                const response = await fetch(apiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                console.log('📥 Response status:', response.status, 'Content-Type:', response.headers.get('content-type'));
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const responseText = await response.text();
-                console.log('📄 Response preview:', responseText.substring(0, 100));
-
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('❌ JSON parse error:', parseError);
-                    console.error('📄 Full response:', responseText);
-                    throw new Error('Invalid JSON response from server');
-                }
-
-                if (data && data.leads) {
-                    console.log('✅ CRM data loaded:', data.leads.length, 'policies');
-
-                    document.getElementById('connectionMessage').innerHTML = 'Loading detailed policy data...';
-
-                    // The server now provides enriched data with vehicles, drivers, and trailers already included
-                    console.log('✅ Server provided enriched policies with detailed data:', data.leads.length);
-
-                    // Use the server-enriched data directly
-                    const detailedPolicies = data.leads.filter(policy => policy.insured_name);
-
-                    // Debug: Show sample policy data structure
-                    if (detailedPolicies.length > 0) {
-                        const samplePolicy = detailedPolicies[0];
-                        console.log('🔍 Sample enriched policy:', {
-                            policy_number: samplePolicy.policy_number,
-                            vehicles: samplePolicy.vehicles?.length || 0,
-                            drivers: samplePolicy.drivers?.length || 0,
-                            trailers: samplePolicy.trailers?.length || 0,
-                            has_coverage: !!samplePolicy.coverage
-                        });
-                    }
-
-                    // Complex loop disabled - data is already enriched server-side
-                    /* Old complex logic disabled
-                    if (false) {
-                    for (const basicPolicy of data.leads) {
-                        processedCount++;
-                        document.getElementById('connectionMessage').innerHTML =
-                            `Loading policy ${processedCount}/${data.leads.length}: ${basicPolicy.policy_number || 'N/A'}...`;
-
-                        if (basicPolicy.policy_number) {
-                            try {
-                                // Fetch detailed data from vanguard CRM via proxy
-                                // Try multiple approaches to get detailed policy data
-                    let detailResponse;
-                    let detailData = null;
-
-                    // First try the new proxy endpoint
-                    try {
-                        detailResponse = await fetch(`/vigagency-internal/policy-detail/${encodeURIComponent(basicPolicy.policy_number)}`);
-                        if (detailResponse.ok) {
-                            detailData = await detailResponse.json();
-                            console.log('✅ Got detailed data via vigagency-internal proxy for:', basicPolicy.policy_number);
-                        } else {
-                            console.log('🔄 New proxy returned', detailResponse.status, ', trying localhost...');
-                        }
-                    } catch (e) {
-                        console.log('🔄 New proxy failed with exception:', e.message);
-                    }
-
-                    // If proxy failed, try localhost server
-                    if (!detailData) {
-                        try {
-                            console.log('🔄 Trying localhost server for:', basicPolicy.policy_number);
-                            detailResponse = await fetch(`http://localhost:8081/api/crm/policy-detail/${encodeURIComponent(basicPolicy.policy_number)}`);
-                            if (detailResponse.ok) {
-                                detailData = await detailResponse.json();
-                                console.log('✅ Got detailed data via localhost for:', basicPolicy.policy_number);
-                            } else {
-                                console.log('🔄 Localhost returned', detailResponse.status);
-                            }
-                        } catch (e2) {
-                            console.log('🔄 Localhost failed with exception:', e2.message);
-                        }
-                    }
-
-                    // Last resort: try direct CRM (will fail due to mixed content but worth trying)
-                    if (!detailData) {
-                        try {
-                            console.log('🔄 Trying direct CRM for:', basicPolicy.policy_number);
-                            detailResponse = await fetch(`http://162.220.14.239/api/policies/${encodeURIComponent(basicPolicy.policy_number)}`);
-                            if (detailResponse.ok) {
-                                detailData = await detailResponse.json();
-                                console.log('✅ Got detailed data via direct CRM for:', basicPolicy.policy_number);
-                            }
-                        } catch (e3) {
-                            console.log('❌ Direct CRM failed:', e3.message);
-                        }
-                    }
-                                if (detailData) {
-                                    console.log('✅ Detailed data for', basicPolicy.policy_number, ':', detailData);
-
-                                    // Merge basic CRM data with detailed policy data
-                                    const mergedPolicy = {
-                                        ...basicPolicy,
-                                        // Basic info from CRM leads
-                                        id: basicPolicy.id,
-                                        policy_number: basicPolicy.policy_number,
-                                        insured_name: basicPolicy.insured_name,
-                                        client_phone: basicPolicy.client_phone,
-                                        client_email: basicPolicy.client_email,
-                                        carrier: basicPolicy.carrier,
-                                        type: basicPolicy.type,
-                                        status: basicPolicy.status,
-                                        premium: basicPolicy.premium,
-                                        effective_date: basicPolicy.effective_date,
-                                        expiration_date: basicPolicy.expiration_date,
-
-                                        // Detailed data from policy endpoint
-                                        address: detailData.data?.contact ?
-                                            `${detailData.data.contact['Mailing Address'] || ''}, ${detailData.data.contact.City || ''}, ${detailData.data.contact.State || ''} ${detailData.data.contact['ZIP Code'] || ''}`.trim() : '',
-                                        dot_number: detailData.data?.overview?.['DOT Number'] || detailData.data?.dotNumber || '',
-                                        mc_number: detailData.data?.overview?.['MC Number'] || detailData.data?.mcNumber || '',
-
-                                        // Vehicles data - separate actual vehicles from trailers
-                                        vehicles: (detailData.data?.vehicles || [])
-                                            .filter(vehicle => vehicle.type !== 'Trailer' && vehicle.Type !== 'Trailer')
-                                            .map(vehicle => ({
-                                                year: vehicle.year || vehicle.Year,
-                                                make: vehicle.make || vehicle.Make,
-                                                model: vehicle.model || '',
-                                                vin: vehicle.vin || vehicle.VIN,
-                                                value: vehicle.value || vehicle.Value,
-                                                type: vehicle.type || vehicle.Type,
-                                                body_type: vehicle.type || vehicle.Type,
-                                                vehicle_cost: vehicle.value || vehicle.Value,
-                                                use: 'Commercial Transportation',
-                                                weight: '',
-                                                radius: 'Interstate'
-                                            })),
-
-                                        // Trailers data - extract trailers from vehicles array
-                                        trailers: (detailData.data?.vehicles || [])
-                                            .filter(vehicle => vehicle.type === 'Trailer' || vehicle.Type === 'Trailer')
-                                            .map(trailer => ({
-                                                year: trailer.year || trailer.Year,
-                                                make: trailer.make || trailer.Make,
-                                                trailer_type: trailer['Trailer Type'] || trailer.trailer_type,
-                                                vin: trailer.vin || trailer.VIN,
-                                                value: trailer.value || trailer.Value,
-                                                deductible: trailer.Deductible || trailer.deductible
-                                            })),
-
-                                        // Drivers data
-                                        drivers: (detailData.data?.drivers || []).map(driver => ({
-                                            name: driver['Full Name'],
-                                            license_number: driver['License Number'],
-                                            full_license: driver['License Number'] // Keep original for reference
-                                        })),
-
-                                        // Coverage data
-                                        coverage: {
-                                            auto_liability: {
-                                                combined_single_limit: detailData.data?.coverage?.['Liability Limits'] || '$1,000,000'
-                                            },
-                                            physical_damage: {
-                                                comprehensive_deductible: detailData.data?.coverage?.['Comprehensive Deductible'] || '$1,000',
-                                                collision_deductible: detailData.data?.coverage?.['Collision Deductible'] || '$1,000'
-                                            },
-                                            cargo: {
-                                                limit: detailData.data?.coverage?.['Cargo Limit'] || '$100,000',
-                                                deductible: detailData.data?.coverage?.['Cargo Deductible'] || '$1,000'
-                                            },
-                                            medical_payments: detailData.data?.coverage?.['Medical Payments'] || '$5,000',
-                                            uninsured_motorist: detailData.data?.coverage?.['Uninsured/Underinsured Motorist'] || '$100,000'
-                                        },
-
-                                        // Store original detailed data for reference
-                                        detailed_crm_data: detailData.data
-                                    };
-
-                                    detailedPolicies.push(mergedPolicy);
-                                } else {
-                                    console.warn('⚠️  Could not fetch detailed data for', basicPolicy.policy_number, '- using basic data');
-                                    detailedPolicies.push(basicPolicy);
-                                }
-                            } catch (detailError) {
-                                console.warn('⚠️  Error fetching detailed data for', basicPolicy.policy_number, ':', detailError.message);
-                                detailedPolicies.push(basicPolicy);
-                            }
-                        } else {
-                            detailedPolicies.push(basicPolicy);
-                        }
-                    } // End of disabled complex loop
-                    */
-
-                    // Set global variables (both ways for compatibility)
-                    window.crmPolicies = detailedPolicies;
-                    window.selectedPolicies = [];
-                    crmPolicies = detailedPolicies; // Also set the direct global variable
-                    selectedPolicies = [];
-
-                    console.log('✅ Global variables set - crmPolicies with detailed data:', crmPolicies.length);
-
-                    // Check which policies already exist in the system
-                    console.log('🔍 Checking for existing policies...');
-                    let existingPolicyNumbers = [];
-                    if (typeof window.getExistingPolicyNumbers === 'function') {
-                        existingPolicyNumbers = await window.getExistingPolicyNumbers();
-                    } else {
-                        console.warn('getExistingPolicyNumbers function not available, using empty array');
-                    }
-                    console.log('✅ Found', existingPolicyNumbers.length, 'existing policy numbers:', existingPolicyNumbers);
-
-                    // Mark policies as existing if they match
-                    console.log('🔍 COMPARISON: Checking', crmPolicies.length, 'CRM policies against', existingPolicyNumbers.length, 'existing numbers');
-                    crmPolicies.forEach((policy, index) => {
-                        // Check multiple ways to match policy numbers
-                        const crmPolicyNumber = policy.policy_number?.trim();
-                        const crmId = policy.id?.trim();
-
-                        // Log first few for debugging
-                        if (index < 5) {
-                            console.log('🔍 COMPARISON: CRM Policy', index, ':', {
-                                id: crmId,
-                                policy_number: crmPolicyNumber,
-                                insured_name: policy.insured_name
-                            });
-                        }
-
-                        policy.exists = existingPolicyNumbers.includes(crmPolicyNumber) ||
-                                      existingPolicyNumbers.includes(crmId) ||
-                                      (crmPolicyNumber && existingPolicyNumbers.some(existing =>
-                                          existing === crmPolicyNumber ||
-                                          existing.endsWith(crmPolicyNumber) ||
-                                          crmPolicyNumber.endsWith(existing)
-                                      ));
-
-                        if (policy.exists) {
-                            console.log('🔸 MATCH FOUND: Policy already exists:', crmPolicyNumber || crmId, '-', policy.insured_name);
-                        }
-                    });
-
-                    const existingCount = crmPolicies.filter(p => p.exists).length;
-                    console.log('📊 COMPARISON RESULT:', existingCount, 'out of', crmPolicies.length, 'CRM policies already exist');
-
-                    const newPoliciesCount = crmPolicies.filter(p => !p.exists).length;
-                    const existingPoliciesCount = crmPolicies.filter(p => p.exists).length;
-                    console.log('✅ Policy check complete:', newPoliciesCount, 'new,', existingPoliciesCount, 'existing');
-
-                    // Show the policies
-                    document.getElementById('crmConnectionStatus').style.display = 'none';
-                    document.getElementById('importActions').style.display = 'block';
-                    document.getElementById('importPoliciesList').style.display = 'block';
-
-                    // Display policies using existing function
-                    if (typeof window.displayCRMPolicies === 'function') {
-                        console.log('✅ Calling displayCRMPolicies with', crmPolicies.length, 'detailed policies');
-                        window.displayCRMPolicies('');
-                    } else {
-                        console.error('❌ displayCRMPolicies function not available');
-                    }
-
-                } else {
-                    throw new Error('No CRM data available');
-                }
-
-            } catch (error) {
-                console.error('CRM connection failed:', error);
-                document.getElementById('crmConnectionStatus').style.display = 'none';
-                document.getElementById('importError').style.display = 'block';
-                document.getElementById('errorMessage').innerHTML = 'CRM connection failed. Using demo mode.';
-
-                // Create demo data
-                const demoData = [
-                    {
-                        id: 'demo-1',
-                        policy_number: 'DEMO-001',
-                        insured_name: 'Demo Client 1',
-                        client_phone: '555-0001',
-                        client_email: 'demo1@example.com',
-                        carrier: 'Demo Carrier',
-                        type: 'Commercial Auto',
-                        premium: 5000,
-                        status: 'Active'
-                    }
-                ];
-
-                // Set global variables (both ways for compatibility)
-                window.crmPolicies = demoData;
-                window.selectedPolicies = [];
-                crmPolicies = demoData; // Also set the direct global variable
-                selectedPolicies = [];
-
-                console.log('✅ Demo data set - crmPolicies:', crmPolicies.length);
-
-                // Show demo policies
-                document.getElementById('importError').style.display = 'none';
-                document.getElementById('importActions').style.display = 'block';
-                document.getElementById('importPoliciesList').style.display = 'block';
-
-                if (typeof window.displayCRMPolicies === 'function') {
-                    console.log('✅ Calling displayCRMPolicies with demo data');
-                    window.displayCRMPolicies('');
-                } else {
-                    console.error('❌ displayCRMPolicies function not available for demo');
-                }
-            }
-        };
+        // CRM Fetch Function - PLACEHOLDER - Actual definition at bottom of file
 
         // Import Function - defined early for button onclick handlers
         window.importSelectedPolicies = async function() {
@@ -2803,15 +2475,64 @@
                     }
 
                     // Make functions globally available
+                    // Add debouncing to prevent infinite loading loops
+                    let coiGenerationInProgress = false;
+                    let lastCOIGeneration = 0;
+                    const COI_DEBOUNCE_MS = 2000; // 2 seconds
+
                     window.generateCOI = function(policyId, policyNumber) {
-                        console.log('🔄 Opening COI generator for policy:', policyNumber);
-                        const policy = window.allPolicies?.find(p => p.id === policyId);
-                        if (!policy) {
-                            console.error('❌ Policy not found! Looking for ID:', policyId);
-                            alert('Policy not found!');
+                        const now = Date.now();
+
+                        // Prevent rapid successive calls
+                        if (coiGenerationInProgress) {
+                            console.log('🚫 COI generation already in progress, ignoring duplicate call');
                             return;
                         }
-                        window.showCOIModal(policy);
+
+                        // Debounce rapid clicks
+                        if (now - lastCOIGeneration < COI_DEBOUNCE_MS) {
+                            console.log('🚫 COI generation debounced, too soon after last call');
+                            return;
+                        }
+
+                        coiGenerationInProgress = true;
+                        lastCOIGeneration = now;
+
+                        console.log('🔄 Opening COI generator for policy:', policyNumber);
+
+                        try {
+                            const policy = window.allPolicies?.find(p => p.id === policyId);
+                            if (!policy) {
+                                console.error('❌ Policy not found! Looking for ID:', policyId);
+                                alert('Policy not found!');
+                                return;
+                            }
+
+                            // Clear any existing COI modal first
+                            const existingModal = document.getElementById('coiModal');
+                            if (existingModal) {
+                                console.log('🧹 Cleaning up existing COI modal');
+                                existingModal.remove();
+                            }
+
+                            // Clear any existing PDF canvases that might cause conflicts
+                            const existingCanvases = document.querySelectorAll('#acordForm canvas');
+                            existingCanvases.forEach(canvas => {
+                                console.log('🧹 Cleaning up existing canvas');
+                                const ctx = canvas.getContext('2d');
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            });
+
+                            window.showCOIModal(policy);
+                        } catch (error) {
+                            console.error('❌ Error in generateCOI:', error);
+                            alert('Error generating COI: ' + error.message);
+                        } finally {
+                            // Reset the lock after a delay to allow the modal to fully initialize
+                            setTimeout(() => {
+                                coiGenerationInProgress = false;
+                            }, 1000);
+                        }
                     };
 
                     window.sendPolicyCOI = function(policyId, policyNumber) {
@@ -3658,6 +3379,17 @@ contact@vigagency.com`;
                 return;
             }
 
+            // Add button-level debouncing to prevent rapid clicks
+            const buttonId = button.getAttribute('data-policy-id') + '_' + button.getAttribute('data-action');
+            const now = Date.now();
+
+            if (!window.buttonLastClicked) window.buttonLastClicked = {};
+            if (window.buttonLastClicked[buttonId] && (now - window.buttonLastClicked[buttonId]) < 1000) {
+                console.log('🚫 Button click debounced - too rapid');
+                return;
+            }
+            window.buttonLastClicked[buttonId] = now;
+
             const action = button.getAttribute('data-action');
             const policyId = button.getAttribute('data-policy-id');
             const policyNumber = button.getAttribute('data-policy-number');
@@ -4011,7 +3743,7 @@ contact@vigagency.com`;
                             deductible: t.deductible || t.Deductible || t.trailer_deductible || t['Trailer Deductible'] || t.physical_damage_deductible || '',
                             trailer_cost: t.trailer_cost || t['Trailer Cost'] || t.trailerCost || t.cost || t['Cost'] || t.value || t['Value'] || ''
                         };
-                    }));
+                    });
 
                 const validDrivers = (policy.drivers || [])
                     .filter(d => d && (d.name || d['Full Name'] || d.fullName || d.license_number || d['License Number']) &&
@@ -4462,203 +4194,8 @@ contact@vigagency.com`;
             };
         }
 
-        // Define fetchCRMPolicies function immediately
-        window.fetchCRMPolicies = function() {
-            console.log('🚀 DIRECT JSONP CRM CONNECTION - Live Data Import');
-
-            try {
-                // Reset modal state
-                document.getElementById('crmConnectionStatus').style.display = 'block';
-                document.getElementById('importActions').style.display = 'none';
-                document.getElementById('importPoliciesList').style.display = 'none';
-                document.getElementById('importError').style.display = 'none';
-
-                document.getElementById('crmConnectionStatus').innerHTML =
-                    '<p>🔗 Connecting to CRM system at http://162.220.14.239/...</p>';
-
-                // Try direct JSONP connection
-                const callbackName = 'crmCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                const script = document.createElement('script');
-
-                const cleanup = () => {
-                    if (script.parentNode) script.parentNode.removeChild(script);
-                    if (window[callbackName]) delete window[callbackName];
-                };
-
-                // Global callback function
-                window[callbackName] = async (data) => {
-                    console.log('🎯 JSONP callback received live CRM data!', data);
-                    cleanup();
-
-                    if (data && data.leads && data.leads.length > 0) {
-                        console.log('✅ SUCCESS! Loaded', data.leads.length, 'live CRM leads');
-
-                        // Get existing local policies to preserve phone/email edits
-                        const existingLocalPolicies = window.policyDB ? await window.policyDB.getAllPolicies() : [];
-                        console.log('🔍 CRM LOAD: Found', existingLocalPolicies.length, 'existing local policies for merge');
-
-                        // Set up the global variables for the modern system - MERGE WITH LOCAL DATA
-                        crmPolicies = data.leads.map(policy => {
-                            // Find corresponding local policy by policy number or ID
-                            const localPolicy = existingLocalPolicies.find(local =>
-                                local.policy_number === policy.policy_number ||
-                                local.policyNumber === policy.policy_number ||
-                                local.id === policy.id
-                            );
-
-                            // Preserve locally edited phone/email data if it exists and is not empty
-                            const preservedPhone = (localPolicy?.client_phone && localPolicy.client_phone !== 'N/A' && localPolicy.client_phone.trim() !== '') ?
-                                localPolicy.client_phone :
-                                (policy.client_phone && policy.client_phone !== 'N/A' ? policy.client_phone : (policy.phone || ''));
-
-                            const preservedEmail = (localPolicy?.client_email && localPolicy.client_email !== 'N/A' && localPolicy.client_email.trim() !== '') ?
-                                localPolicy.client_email :
-                                (policy.client_email && policy.client_email !== 'N/A' ? policy.client_email : (policy.email || ''));
-
-                            if (localPolicy && (preservedPhone || preservedEmail)) {
-                                console.log('🔄 CRM MERGE: Preserving local edits for', policy.policy_number, '- phone:', preservedPhone, 'email:', preservedEmail);
-                            }
-
-                            return {
-                                id: policy.id,
-                                policy_number: policy.policy_number || 'N/A',
-                                insured_name: policy.insured_name || policy.name || 'Unknown Client',
-                                client_name: policy.insured_name || policy.name || 'Unknown Client',
-                                client_phone: preservedPhone, // Use preserved data
-                                client_email: preservedEmail, // Use preserved data
-                                carrier: policy.carrier || 'N/A',
-                                status: policy.status || (policy.crm_data && policy.crm_data.stage) || policy.stage || 'Unknown',
-                                exists: false // Will be updated below
-                            };
-                        });
-
-                        // CRITICAL: Save merged CRM policies to PolicyDataManager to preserve local edits
-                        if (window.policyDB && crmPolicies.length > 0) {
-                            console.log('💾 CRM LOAD: Saving', crmPolicies.length, 'merged policies to PolicyDataManager...');
-                            try {
-                                // Save all policies as a batch to preserve merge results
-                                const saveResult = await fetch('/api/policies', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ policies: crmPolicies })
-                                });
-                                const result = await saveResult.json();
-                                if (result.success) {
-                                    console.log('✅ CRM LOAD: Successfully saved merged policies to server storage');
-
-                                    // Reload policies from server to get the normalized versions
-                                    window.allPolicies = await window.policyDB.getAllPolicies();
-                                    window.filteredPolicies = [...window.allPolicies];
-                                    console.log('✅ CRM LOAD: Reloaded', window.allPolicies.length, 'normalized policies from server');
-
-                                    // Update the displayed policies immediately
-                                    if (typeof window.displayAllPolicies === 'function') {
-                                        window.displayAllPolicies(window.filteredPolicies);
-                                    }
-                                } else {
-                                    console.error('❌ CRM LOAD: Failed to save merged policies:', result.error);
-                                }
-                            } catch (error) {
-                                console.error('❌ CRM LOAD: Error saving merged policies:', error);
-                            }
-                        }
-
-                        // Check which policies already exist using unified function
-                        let existingPolicyNumbers = [];
-                        console.log('🔍 STEP 1: About to call getExistingPolicyNumbers...');
-                        console.log('🔍 STEP 1: Function available?', typeof window.getExistingPolicyNumbers === 'function');
-                        console.log('🔍 STEP 1: PolicyDB available?', !!window.policyDB);
-
-                        if (typeof window.getExistingPolicyNumbers === 'function') {
-                            console.log('🔍 STEP 2: Calling getExistingPolicyNumbers...');
-                            existingPolicyNumbers = await window.getExistingPolicyNumbers();
-                            console.log('🔍 STEP 3: getExistingPolicyNumbers returned:', existingPolicyNumbers);
-
-                            // MANUAL TEST: Also directly check policies from policyDB
-                            if (window.policyDB) {
-                                console.log('🧪 MANUAL TEST: Direct PolicyDB check...');
-                                const directPolicies = await window.policyDB.getAllPolicies();
-                                console.log('🧪 MANUAL TEST: Found', directPolicies.length, 'direct policies');
-
-                                // Log first few policies
-                                directPolicies.slice(0, 3).forEach((policy, i) => {
-                                    console.log('🧪 MANUAL TEST: Direct Policy', i, ':', {
-                                        id: policy.id,
-                                        policy_number: policy.policy_number,
-                                        policyNumber: policy.policyNumber,
-                                        insured_name: policy.insured_name,
-                                        clientName: policy.clientName
-                                    });
-                                });
-
-                                // Check if specific policies exist
-                                const pol966740 = directPolicies.find(p => p.id === 'POL966740' || p.policyNumber === 'POL966740' || p.policy_number === 'POL966740');
-                                const policy947869406 = directPolicies.find(p => p.policyNumber === '947869406' || p.policy_number === '947869406' || p.id === '947869406');
-                                const policyMain = directPolicies.find(p => p.id === 'POLICY' || p.policyNumber === 'POLICY' || p.policy_number === 'POLICY');
-
-                                console.log('🧪 MANUAL TEST: POL966740 exists?', !!pol966740);
-                                console.log('🧪 MANUAL TEST: 947869406 exists?', !!policy947869406);
-                                console.log('🧪 MANUAL TEST: POLICY exists?', !!policyMain);
-                            }
-                        } else {
-                            console.warn('❌ STEP 2: getExistingPolicyNumbers function not available, using empty array');
-                        }
-                        console.log('🔍 COMPARISON: Checking', crmPolicies.length, 'CRM policies against', existingPolicyNumbers.length, 'existing numbers');
-                        crmPolicies.forEach((policy, index) => {
-                            const crmPolicyNumber = policy.policy_number?.trim();
-                            const crmId = policy.id?.trim();
-
-                            policy.exists = existingPolicyNumbers.includes(crmPolicyNumber) ||
-                                          existingPolicyNumbers.includes(crmId) ||
-                                          (crmPolicyNumber && existingPolicyNumbers.some(existing =>
-                                              existing === crmPolicyNumber ||
-                                              existing.endsWith(crmPolicyNumber) ||
-                                              crmPolicyNumber.endsWith(existing)
-                                          ));
-
-                            if (policy.exists && index < 5) {
-                                console.log('🔸 MATCH FOUND: Policy already exists:', crmPolicyNumber || crmId, '-', policy.insured_name);
-                            }
-                        });
-
-                        const existingCount = crmPolicies.filter(p => p.exists).length;
-                        console.log('📊 COMPARISON RESULT:', existingCount, 'out of', crmPolicies.length, 'CRM policies already exist');
-
-                        // Use the modern display system
-                        if (typeof window.displayCRMPoliciesWithBanner === 'function') {
-                            window.displayCRMPoliciesWithBanner(false);
-                        } else {
-                            console.warn('displayCRMPoliciesWithBanner function not available');
-                        }
-                    } else {
-                        showCRMError('No policies found in CRM system');
-                    }
-                };
-
-                script.onerror = (error) => {
-                    console.error('🔥 JSONP script load failed:', error);
-                    cleanup();
-                    showCRMError('Failed to connect to CRM system');
-                };
-
-                // Set timeout
-                setTimeout(() => {
-                    cleanup();
-                    showCRMError('Connection timeout - CRM system not responding');
-                }, 15000);
-
-                // Direct connection to working JSONP endpoint
-                const jsonpUrl = `http://127.0.0.1:3001/api/vigagency/crm/leads?callback=${callbackName}&format=jsonp&_=${Date.now()}`;
-                console.log('🔗 JSONP URL:', jsonpUrl);
-
-                script.src = jsonpUrl;
-                document.head.appendChild(script);
-
-            } catch (error) {
-                console.error('❌ Error in fetchCRMPolicies:', error);
-                showCRMError('Error connecting to CRM: ' + error.message);
-            }
-        };
+        // PLACEHOLDER - Second fetchCRMPolicies definition removed to fix syntax errors
+        // Commented out duplicate function - main definition is at end of file
 
         // Old displayCRMPolicies function removed - now using global version
 
@@ -4809,6 +4346,8 @@ contact@vigagency.com`;
             if (modal) modal.classList.remove('active');
         };
 
+        // DUPLICATE generateCOI function commented out - using debounced version above
+        /*
         window.generateCOI = async function(policyId, policyNumber) {
             console.log('🔄 DIRECT generateCOI called with:', policyId, policyNumber);
 
@@ -4845,6 +4384,7 @@ contact@vigagency.com`;
                 }
             }
         };
+        */
 
 
         window.sendPolicyCOI = async function(policyId, policyNumber) {
@@ -6599,10 +6139,39 @@ contact@vigagency.com`;
 
                                 // Check which policies already exist using unified function
                                 let existingPolicyNumbers = [];
+                                console.log('🔍 EXISTENCE DEBUG: Checking function availability...');
+                                console.log('🔍 EXISTENCE DEBUG: typeof window.getExistingPolicyNumbers:', typeof window.getExistingPolicyNumbers);
+                                console.log('🔍 EXISTENCE DEBUG: policyDB available?', !!window.policyDB);
+                                console.log('🔍 EXISTENCE DEBUG: All window functions:', Object.getOwnPropertyNames(window).filter(name => name.includes('Policy')));
+
                                 if (typeof window.getExistingPolicyNumbers === 'function') {
+                                    console.log('🔍 EXISTENCE DEBUG: Function found, calling...');
                                     existingPolicyNumbers = await window.getExistingPolicyNumbers();
+                                    console.log('🔍 EXISTENCE DEBUG: Function returned:', existingPolicyNumbers.length, 'numbers');
                                 } else {
-                                    console.warn('getExistingPolicyNumbers function not available, using empty array');
+                                    console.warn('❌ EXISTENCE DEBUG: getExistingPolicyNumbers function not available');
+                                    console.log('🔍 EXISTENCE DEBUG: Trying direct policyDB call as fallback...');
+
+                                    // Fallback: Call policyDB directly
+                                    if (window.policyDB) {
+                                        try {
+                                            const allPolicies = await window.policyDB.getAllPolicies();
+                                            console.log('🔍 EXISTENCE FALLBACK: Got', allPolicies.length, 'policies directly from policyDB');
+
+                                            const existingNumbers = new Set();
+                                            allPolicies.forEach(policy => {
+                                                if (policy.policy_number?.trim()) existingNumbers.add(policy.policy_number.trim());
+                                                if (policy.policyNumber?.trim()) existingNumbers.add(policy.policyNumber.trim());
+                                                if (policy.id?.trim() && /^\d+$/.test(policy.id.trim())) existingNumbers.add(policy.id.trim());
+                                            });
+                                            existingPolicyNumbers = Array.from(existingNumbers);
+                                            console.log('🔍 EXISTENCE FALLBACK: Extracted', existingPolicyNumbers.length, 'policy numbers');
+                                        } catch (error) {
+                                            console.error('❌ EXISTENCE FALLBACK: Error calling policyDB directly:', error);
+                                        }
+                                    } else {
+                                        console.warn('❌ EXISTENCE FALLBACK: policyDB not available either');
+                                    }
                                 }
 
                                 console.log('🔍 ENHANCED CHECK: Comparing policies against', existingPolicyNumbers.length, 'existing numbers');
@@ -7327,6 +6896,18 @@ contact@vigagency.com`;
                     e.preventDefault();
                     e.stopPropagation();
                     const button = e.target.closest('[data-action]');
+
+                    // Add button-level debouncing to prevent rapid clicks (same as above)
+                    const buttonId = button.getAttribute('data-policy-id') + '_' + button.getAttribute('data-action');
+                    const now = Date.now();
+
+                    if (!window.buttonLastClicked) window.buttonLastClicked = {};
+                    if (window.buttonLastClicked[buttonId] && (now - window.buttonLastClicked[buttonId]) < 1000) {
+                        console.log('🚫 Button click debounced - too rapid (global handler)');
+                        return;
+                    }
+                    window.buttonLastClicked[buttonId] = now;
+
                     const action = button.getAttribute('data-action');
                     const policyId = button.getAttribute('data-policy-id');
                     const policyNumber = button.getAttribute('data-policy-number');

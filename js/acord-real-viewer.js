@@ -321,6 +321,19 @@ async function renderRealPage(pageNumber) {
         // Set scale to fit width
         const viewport = page.getViewport({ scale: window.realPdfState.scale });
 
+        // CRITICAL: Cancel any existing render operations to prevent canvas conflicts
+        if (window.realPdfState.currentRenderTask) {
+            console.log('🛑 Cancelling existing render task to prevent canvas conflict');
+            try {
+                window.realPdfState.currentRenderTask.cancel();
+            } catch (cancelError) {
+                console.log('⚠️ Render task already completed or cancelled');
+            }
+        }
+
+        // Clear the canvas before starting new render
+        window.realPdfState.ctx.clearRect(0, 0, window.realPdfState.canvas.width, window.realPdfState.canvas.height);
+
         // Set canvas dimensions
         window.realPdfState.canvas.height = viewport.height;
         window.realPdfState.canvas.width = viewport.width;
@@ -331,7 +344,10 @@ async function renderRealPage(pageNumber) {
             viewport: viewport
         };
 
-        await page.render(renderContext).promise;
+        console.log('🎨 Starting PDF render with clean canvas');
+        window.realPdfState.currentRenderTask = page.render(renderContext);
+        await window.realPdfState.currentRenderTask.promise;
+        window.realPdfState.currentRenderTask = null; // Clear the task reference
         console.log('Page rendered successfully');
 
     } catch (error) {
