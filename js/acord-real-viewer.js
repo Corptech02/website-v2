@@ -506,7 +506,7 @@ function createRealFormFields(policyId, policyData) {
 
         // === AGGREGATE LIMIT CHECKBOXES ===
         { id: 'aggPolicy', x: 47, y: 468, width: 18, height: 16,
-          type: 'checkbox' },
+          type: 'checkbox', checked: true },
         { id: 'aggProject', x: 103, y: 468, width: 20, height: 16,
           type: 'checkbox' },
         { id: 'aggLocation', x: 159, y: 468, width: 20, height: 16,
@@ -516,11 +516,11 @@ function createRealFormFields(policyId, policyData) {
 
         // === AUTOMOBILE LIABILITY CHECKBOXES ===
         { id: 'autoAny', x: 47, y: 515, width: 18, height: 16,
-          type: 'checkbox', checked: (policyData?.policyType === 'commercial-auto' || policyData?.overview?.['Policy Type'] === 'Commercial Auto') },
+          type: 'checkbox', checked: false },
         { id: 'autoOwned', x: 47, y: 530, width: 18, height: 16,
           type: 'checkbox' },
         { id: 'autoScheduled', x: 135, y: 530, width: 20, height: 16,
-          type: 'checkbox' },
+          type: 'checkbox', checked: true },
         { id: 'autoHired', x: 47, y: 546, width: 18, height: 16,
           type: 'checkbox' },
         { id: 'autoNonOwned', x: 135, y: 546, width: 20, height: 16,
