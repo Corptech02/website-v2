@@ -298,7 +298,7 @@
     </footer>
 
     <script src="../js/main.js?v=20251029"></script>
-    <script src="../js/policy-data.js"></script>
+    <script src="../js/policy-data.js?v=20251230"></script>
     <script>
         console.log('Login page loaded - Version 2.0 with phone number authentication');
 
@@ -391,7 +391,7 @@
                     phoneNumber: phoneNumber.slice(0, 3) + '***'
                 });
 
-                const authResult = window.policyDB.authenticateUser(policyNumber, phoneNumber);
+                const authResult = await window.policyDB.authenticateUser(policyNumber, phoneNumber);
                 console.log('🔍 CLIENT AUTHENTICATION ATTEMPT:');
                 console.log('  - Policy Number:', policyNumber);
                 console.log('  - Phone Number:', phoneNumber);

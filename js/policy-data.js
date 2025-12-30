@@ -297,13 +297,51 @@ class PolicyDataManager {
     // Authentication methods (local implementation)
     async authenticateUser(policyNumber, phoneNumber) {
         try {
+            console.log('🔐 AUTHENTICATEUSER DEBUG - Starting authentication process');
+            console.log('🔐 INPUT - Policy Number:', policyNumber);
+            console.log('🔐 INPUT - Phone Number:', phoneNumber);
+            console.log('🔐 INPUT - Phone Number (clean):', phoneNumber.replace(/\D/g, ''));
+
             const policies = await this.getAllPolicies();
+            console.log('🔐 POLICIES LOADED - Total count:', policies.length);
+
+            // Log first few policy IDs and phone numbers for debugging
+            console.log('🔐 SAMPLE POLICIES:');
+            policies.slice(0, 3).forEach((p, i) => {
+                console.log(`  ${i+1}. ID: ${p.id}, Policy: ${p.policy_number}, Phone: ${p.client_phone} (clean: ${p.client_phone?.replace(/\D/g, '') || 'N/A'})`);
+            });
+
+            // Look for the specific policy
+            const targetPolicy = policies.find(p => p.policy_number === policyNumber);
+            if (targetPolicy) {
+                console.log('🔐 TARGET POLICY FOUND:', {
+                    id: targetPolicy.id,
+                    policy_number: targetPolicy.policy_number,
+                    client_phone: targetPolicy.client_phone,
+                    client_phone_clean: targetPolicy.client_phone?.replace(/\D/g, ''),
+                    insured_name: targetPolicy.insured_name
+                });
+            } else {
+                console.log('🔐 TARGET POLICY NOT FOUND for policy number:', policyNumber);
+                console.log('🔐 Available policy numbers:', policies.map(p => p.policy_number));
+            }
+
             const policy = policies.find(p =>
                 p.policy_number === policyNumber &&
                 p.client_phone.replace(/\D/g, '') === phoneNumber.replace(/\D/g, '')
             );
 
+            console.log('🔐 AUTHENTICATION RESULT:');
+            console.log('  - Policy found:', !!policy);
+            console.log('  - Policy match details:', policy ? {
+                id: policy.id,
+                policy_number: policy.policy_number,
+                client_phone: policy.client_phone,
+                insured_name: policy.insured_name
+            } : 'None');
+
             if (policy) {
+                console.log('✅ AUTHENTICATION SUCCESS');
                 return {
                     success: true,
                     user: {
@@ -317,12 +355,14 @@ class PolicyDataManager {
                 };
             }
 
+            console.log('❌ AUTHENTICATION FAILED - No matching policy found');
             return {
                 success: false,
                 error: 'Invalid policy number or phone number'
             };
         } catch (error) {
             console.error('❌ Authentication error:', error);
+            console.error('❌ Error stack:', error.stack);
             return {
                 success: false,
                 error: 'Authentication failed'
