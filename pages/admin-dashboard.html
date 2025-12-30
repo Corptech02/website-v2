@@ -3691,9 +3691,9 @@ contact@vigagency.com`;
             const modal = document.getElementById('editPolicyModal');
             if (modal) {
                 // Update modal title to show which policy is being edited
+                const clientName = policy.insured_name || policy.client_name || policy.clientName || 'Unknown Client';
                 const title = modal.querySelector('h2');
                 if (title) {
-                    const clientName = policy.insured_name || policy.client_name || policy.clientName || 'Unknown Client';
                     title.innerHTML = `<i class="fas fa-edit"></i> Edit Policy - ${clientName}`;
                 }
 
@@ -3769,12 +3769,35 @@ contact@vigagency.com`;
                     console.log('🚗 Directly populating', validVehicles.length, 'valid vehicles using populateVehicles()');
                     console.log('🔍 DEBUG: Normalized vehicle data:', validVehicles);
                     console.log('🔍 DEBUG: Vehicle year values:', validVehicles.map(v => ({ index: validVehicles.indexOf(v), year: v.year, yearType: typeof v.year })));
+
                     // Use the populateVehicles function instead of addVehicle to avoid duplicates
                     if (window.populateVehicles) {
                         window.populateVehicles(validVehicles);
+
+                        // CRITICAL FIX: Ensure vehicles container is visible after population
+                        setTimeout(() => {
+                            const vehiclesContainer = document.getElementById('vehiclesList');
+                            if (vehiclesContainer) {
+                                console.log('🔧 DISPLAY FIX: Vehicles container state after population:');
+                                console.log('  - Container found:', !!vehiclesContainer);
+                                console.log('  - Display style:', vehiclesContainer.style.display);
+                                console.log('  - Visibility:', vehiclesContainer.style.visibility);
+                                console.log('  - HTML content length:', vehiclesContainer.innerHTML.length);
+                                console.log('  - Child elements:', vehiclesContainer.children.length);
+
+                                // Force display if hidden
+                                if (vehiclesContainer.style.display === 'none' || vehiclesContainer.style.visibility === 'hidden') {
+                                    console.log('🔧 DISPLAY FIX: Forcing vehicles container to be visible');
+                                    vehiclesContainer.style.display = 'grid';
+                                    vehiclesContainer.style.visibility = 'visible';
+                                }
+                            }
+                        }, 100);
                     } else {
                         console.warn('❌ populateVehicles function not found');
                     }
+                } else {
+                    console.log('🚗 No valid vehicles to display');
                 }
 
                 if (validTrailers.length > 0) {
@@ -3799,6 +3822,19 @@ contact@vigagency.com`;
                         console.warn('❌ populateDrivers function not found');
                     }
                 }
+
+                // FINAL DISPLAY CHECK: Ensure all populated containers are visible
+                setTimeout(() => {
+                    const containers = ['vehiclesList', 'trailersList', 'driversList'];
+                    containers.forEach(containerId => {
+                        const container = document.getElementById(containerId);
+                        if (container && container.innerHTML.trim() && container.children.length > 0) {
+                            console.log(`🔧 FINAL CHECK: ${containerId} has ${container.children.length} items, ensuring visibility`);
+                            container.style.display = 'grid';
+                            container.style.visibility = 'visible';
+                        }
+                    });
+                }, 50);
 
                 console.log('✅ FINAL: All fields populated, containers cleared properly');
             }, 200);
