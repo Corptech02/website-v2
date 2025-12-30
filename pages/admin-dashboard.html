@@ -5612,6 +5612,167 @@ contact@vigagency.com`;
             }
         }
 
+        // Simple Certificate Holders Popup for COI Modal
+        window.showSavedCertificateHolders = function() {
+            console.log('🏢 Opening saved certificate holders popup');
+
+            // Define saved certificate holders
+            const certificateHolders = [
+                {
+                    name: "Highway App, Inc.",
+                    address: "5931 Greenville Ave, Unit #5620",
+                    cityStateZip: "Dallas, TX 75206",
+                    email: "coi@highway.com"
+                },
+                {
+                    name: "ABC Construction Company",
+                    address: "1234 Industrial Blvd",
+                    cityStateZip: "Houston, TX 77001",
+                    email: "certificates@abcconstruction.com"
+                },
+                {
+                    name: "XYZ Logistics Corp",
+                    address: "5678 Commerce Dr",
+                    cityStateZip: "Austin, TX 78701",
+                    email: "insurance@xyzlogistics.com"
+                },
+                {
+                    name: "Premier Transport LLC",
+                    address: "9876 Freight Way",
+                    cityStateZip: "San Antonio, TX 78205",
+                    email: "coi@premiertransport.net"
+                }
+            ];
+
+            // Create modal HTML
+            const modalHTML = `
+                <div id="certificateHoldersPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 20000;">
+                    <div style="background: white; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                        <!-- Header -->
+                        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+                                <i class="fas fa-address-book" style="margin-right: 8px;"></i>
+                                Saved Certificate Holders
+                            </h3>
+                            <button onclick="closeCertificateHoldersPopup()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+                        </div>
+
+                        <!-- Content -->
+                        <div style="padding: 20px;">
+                            <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px;">
+                                Click on a certificate holder to auto-populate the form fields.
+                            </p>
+
+                            <!-- Certificate Holders List -->
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                ${certificateHolders.map((holder, index) => `
+                                    <div onclick="selectCertificateHolder('${holder.name}', '${holder.address}', '${holder.cityStateZip}', '${holder.email}')"
+                                         style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 16px; cursor: pointer; transition: all 0.3s ease; background: white;"
+                                         onmouseover="this.style.borderColor='#059669'; this.style.backgroundColor='#f0fdf4';"
+                                         onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='white';">
+                                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                                            <div>
+                                                <h4 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
+                                                    ${holder.name}
+                                                </h4>
+                                                <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
+                                                    ${holder.address}
+                                                </p>
+                                                <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
+                                                    ${holder.cityStateZip}
+                                                </p>
+                                                <p style="margin: 0; color: #059669; font-size: 14px; font-weight: 500;">
+                                                    ${holder.email}
+                                                </p>
+                                            </div>
+                                            <div style="color: #059669; font-size: 18px;">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <!-- Add New Button -->
+                            <div style="margin-top: 20px; text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                                <button onclick="alert('Add new certificate holder feature coming soon!')"
+                                        style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                                    Add New Certificate Holder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        };
+
+        // Function to select and populate certificate holder information
+        window.selectCertificateHolder = function(name, address, cityStateZip, email) {
+            console.log('📝 Populating certificate holder:', name);
+
+            // Populate the form fields
+            const nameField = document.getElementById('certificateHolderName');
+            const addressField = document.getElementById('holderStreetAddress');
+            const cityField = document.getElementById('holderCityStateZip');
+
+            if (nameField) nameField.value = name;
+            if (addressField) addressField.value = address;
+            if (cityField) cityField.value = cityStateZip;
+
+            // Add email to recipients if not already present
+            addEmailRecipientWithValue(email);
+
+            // Close the popup
+            closeCertificateHoldersPopup();
+
+            // Show success message
+            setTimeout(() => {
+                alert(`Certificate holder "${name}" information has been populated!`);
+            }, 100);
+        };
+
+        // Function to close certificate holders popup
+        window.closeCertificateHoldersPopup = function() {
+            const popup = document.getElementById('certificateHoldersPopup');
+            if (popup) {
+                popup.remove();
+            }
+        };
+
+        // Helper function to add email recipient with specific value
+        window.addEmailRecipientWithValue = function(email) {
+            const container = document.getElementById('emailRecipientsContainer');
+            if (!container) return;
+
+            // Check if email already exists
+            const existingInputs = container.querySelectorAll('.email-recipient');
+            for (let input of existingInputs) {
+                if (input.value === email) {
+                    console.log('Email already exists:', email);
+                    return;
+                }
+            }
+
+            // Add new recipient with the email
+            const newRecipient = document.createElement('div');
+            newRecipient.className = 'email-recipient-row';
+            newRecipient.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+            newRecipient.innerHTML = `
+                <input type="email" class="email-recipient" required
+                       style="flex: 1; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;"
+                       value="${email}" placeholder="recipient@example.com">
+                <button type="button" onclick="this.parentElement.remove()"
+                        style="background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; min-width: 40px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(newRecipient);
+        };
+
         // Functions for managing email recipients
         window.addEmailRecipient = function() {
             const container = document.getElementById('emailRecipientsContainer');
