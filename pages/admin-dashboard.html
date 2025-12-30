@@ -8383,6 +8383,70 @@ contact@vigagency.com`;
                 updatedData.coverage = filteredCoverageData;
             }
 
+            // Collect vehicles data from the modal
+            const vehicleContainers = document.querySelectorAll('#vehiclesList .vehicle-item');
+            const vehicles = [];
+            vehicleContainers.forEach((container, index) => {
+                const vehicleData = {
+                    year: container.querySelector(`#vehicleYear_${index}`)?.value || '',
+                    make: container.querySelector(`#vehicleMake_${index}`)?.value || '',
+                    model: container.querySelector(`#vehicleModel_${index}`)?.value || '',
+                    vin: container.querySelector(`#vehicleVin_${index}`)?.value || ''
+                };
+                // Only add if at least one field has data
+                if (vehicleData.year || vehicleData.make || vehicleData.model || vehicleData.vin) {
+                    vehicles.push(vehicleData);
+                }
+            });
+            if (vehicles.length > 0) {
+                updatedData.vehicles = vehicles;
+            }
+
+            // Collect trailers data from the modal
+            const trailerContainers = document.querySelectorAll('#trailersList .trailer-item');
+            const trailers = [];
+            trailerContainers.forEach((container, index) => {
+                const trailerData = {
+                    year: container.querySelector(`#trailerYear_${index}`)?.value || '',
+                    make: container.querySelector(`#trailerMake_${index}`)?.value || '',
+                    length: container.querySelector(`#trailerLength_${index}`)?.value || '',
+                    vin: container.querySelector(`#trailerVin_${index}`)?.value || ''
+                };
+                // Only add if at least one field has data
+                if (trailerData.year || trailerData.make || trailerData.length || trailerData.vin) {
+                    trailers.push(trailerData);
+                }
+            });
+            if (trailers.length > 0) {
+                updatedData.trailers = trailers;
+            }
+
+            // Collect drivers data from the modal
+            const driverContainers = document.querySelectorAll('#driversList .driver-item');
+            const drivers = [];
+            driverContainers.forEach((container, index) => {
+                const driverData = {
+                    name: container.querySelector(`#driverName_${index}`)?.value || '',
+                    license: container.querySelector(`#driverLicense_${index}`)?.value || '',
+                    birthDate: container.querySelector(`#driverBirth_${index}`)?.value || '',
+                    hireDate: container.querySelector(`#driverHire_${index}`)?.value || ''
+                };
+                // Only add if at least one field has data
+                if (driverData.name || driverData.license || driverData.birthDate || driverData.hireDate) {
+                    drivers.push(driverData);
+                }
+            });
+            if (drivers.length > 0) {
+                updatedData.drivers = drivers;
+            }
+
+            console.log('🚗 Found', vehicleContainers.length, 'vehicle containers');
+            console.log('🚛 Found', trailerContainers.length, 'trailer containers');
+            console.log('👤 Found', driverContainers.length, 'driver containers');
+            console.log('🚗 Saving vehicles:', vehicles);
+            console.log('🚛 Saving trailers:', trailers);
+            console.log('👤 Saving drivers:', drivers);
+
             try {
                 console.log('💾 Updating policy:', window.currentEditingPolicyId, 'with data:', updatedData);
 
