@@ -4166,9 +4166,9 @@ contact@vigagency.com`;
             }
         };
 
-        window.sendCOIEmail = function(policyId, policyNumber) {
+        window.sendCOIEmail = async function(policyId, policyNumber) {
             try {
-                showSimpleCOIEmailModal(policyId, policyNumber);
+                await showSimpleCOIEmailModal(policyId, policyNumber);
             } catch (error) {
                 console.error('❌ COI email modal function not found:', error);
                 alert('COI email functionality is not available. Please refresh the page and try again.');
@@ -4847,7 +4847,7 @@ contact@vigagency.com`;
         };
 
 
-        window.sendPolicyCOI = function(policyId, policyNumber) {
+        window.sendPolicyCOI = async function(policyId, policyNumber) {
             console.log('📧 DIRECT sendPolicyCOI called with:', policyId, policyNumber);
 
             // Ensure policies are loaded
@@ -4875,7 +4875,7 @@ contact@vigagency.com`;
             // Use the existing showSimpleCOIEmailModal function
             if (typeof window.showSimpleCOIEmailModal === 'function') {
                 console.log('📧 Calling showSimpleCOIEmailModal function');
-                window.showSimpleCOIEmailModal(policyId, policyNumber);
+                await window.showSimpleCOIEmailModal(policyId, policyNumber);
             } else {
                 console.error('❌ showSimpleCOIEmailModal function not found');
             }
@@ -5238,11 +5238,11 @@ contact@vigagency.com`;
         }
 
         // Admin action functions
-        function sendPolicyCOI(policyId, policyNumber) {
+        async function sendPolicyCOI(policyId, policyNumber) {
             console.log('📧 Sending COI for policy:', policyNumber);
 
             // Find the policy in the database (where COI documents are actually stored)
-            const policy = window.policyDB.getPolicyById(policyId);
+            const policy = await window.policyDB.getPolicyById(policyId);
             if (!policy) {
                 alert('Policy not found.');
                 return;
@@ -5260,15 +5260,15 @@ contact@vigagency.com`;
 
             // Use the simple COI email modal
             console.log('✅ Found COI document, opening simple email modal');
-            showSimpleCOIEmailModal(policyId, policyNumber);
+            await showSimpleCOIEmailModal(policyId, policyNumber);
         }
 
         // Simple COI Email Modal - renamed to avoid conflict with complex COI generator modal
-        function showSimpleCOIEmailModal(policyId, policyNumber) {
+        async function showSimpleCOIEmailModal(policyId, policyNumber) {
             // Try to get policy by ID first, then by policy number as fallback
-            let policy = window.policyDB.getPolicyById(policyId);
+            let policy = await window.policyDB.getPolicyById(policyId);
             if (!policy && policyNumber) {
-                policy = window.policyDB.getPolicyByNumber(policyNumber);
+                policy = await window.policyDB.getPolicyByNumber(policyNumber);
                 console.log('Policy found by number fallback:', policy?.policy_number);
             }
             if (!policy) {
@@ -5336,6 +5336,17 @@ contact@vigagency.com`;
                                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px;"
                                                placeholder="City, State ZIP">
                                         <small style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;">Street address</small>
+                                    </div>
+
+                                    <!-- Saved Certificate Holders Button -->
+                                    <div style="margin-bottom: 20px; text-align: center;">
+                                        <button type="button" onclick="showSavedCertificateHolders()"
+                                                style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2); transition: all 0.3s ease;"
+                                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(5, 150, 105, 0.3)'"
+                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(5, 150, 105, 0.2)'">
+                                            <i class="fas fa-address-book" style="margin-right: 8px;"></i>
+                                            Saved Certificate Holders
+                                        </button>
                                     </div>
                                 </div>
 
