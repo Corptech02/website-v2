@@ -531,7 +531,7 @@
     <script src="../js/main.js?v=20251220"></script>
     <script src="../js/policy-data.js?v=1766948746-filter-fix"></script>
     <script>
-        console.log('Dashboard loaded - Version 2.0 with test mode support');
+        console.log('Dashboard loaded - Version 2.4 with fixed certificate holders and localStorage - 20251230');
         const API_BASE_URL = ''; // Use same ngrok domain (proxy forwards to API server)
 
         function emailCOI(policyId, policyNumber) {
@@ -540,11 +540,11 @@
         }
 
         // COI Modal functionality
-        function showCOIModal(policyId, policyNumber) {
+        async function showCOIModal(policyId, policyNumber) {
             // Try to get policy by ID first, then by policy number as fallback
-            let policy = window.policyDB.getPolicyById(policyId);
+            let policy = await window.policyDB.getPolicyById(policyId);
             if (!policy && policyNumber) {
-                policy = window.policyDB.getPolicyByNumber(policyNumber);
+                policy = await window.policyDB.getPolicyByNumber(policyNumber);
                 console.log('Policy found by number fallback:', policy?.policy_number);
             }
             if (!policy) {
@@ -583,6 +583,17 @@
                                 </div>
 
                                 <div id="thirdPartyFields" class="hidden">
+                                    <!-- Saved Certificate Holders Button -->
+                                    <div style="margin-bottom: 20px; text-align: center;">
+                                        <button type="button" onclick="showSavedCertificateHolders()"
+                                                style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2); transition: all 0.3s ease;"
+                                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(5, 150, 105, 0.3)'"
+                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(5, 150, 105, 0.2)'">
+                                            <i class="fas fa-address-book" style="margin-right: 8px;"></i>
+                                            Saved Certificate Holders
+                                        </button>
+                                    </div>
+
                                     <div class="form-group">
                                         <label>Certificate Holder Name *</label>
                                         <input type="text" id="holderName" placeholder="Business or individual name">
@@ -1511,6 +1522,284 @@
                 });
             }
         });
+
+        // === CERTIFICATE HOLDERS FUNCTIONALITY ===
+
+        window.savedCertificateHolders = window.savedCertificateHolders || [];
+
+        // Global certificate holders (always shown first) - SAME AS ADMIN
+        const globalCertificateHolders = [
+            {
+                name: "Highway App, Inc.",
+                address: "5931 Greenville Ave, Unit #5620",
+                cityStateZip: "Dallas, TX 75206",
+                email: "coi@highway.com",
+                isGlobal: true
+            },
+            {
+                name: "Registry Monitoring Insurance Services, Inc",
+                address: "1444 S Entertainment Ave, Ste 110",
+                cityStateZip: "Boise, ID 83709",
+                email: "transportation@rmis.com",
+                isGlobal: true
+            },
+            {
+                name: "DAT Solutions",
+                address: "8405 SW Nimbus Ave",
+                cityStateZip: "Beaverton, OR 97008",
+                email: "certs@dat.com",
+                isGlobal: true
+            }
+        ];
+
+        // Show saved certificate holders popup
+        window.showSavedCertificateHolders = function() {
+            console.log('🏢 Opening saved certificate holders popup');
+
+            // Function to filter certificate holders based on search
+            const filterHolders = (searchTerm = '') => {
+                const term = searchTerm.toLowerCase();
+                const allHolders = [...globalCertificateHolders, ...window.savedCertificateHolders];
+
+                if (!term) return allHolders;
+
+                return allHolders.filter(holder =>
+                    holder.name.toLowerCase().includes(term) ||
+                    holder.address.toLowerCase().includes(term) ||
+                    holder.cityStateZip.toLowerCase().includes(term) ||
+                    holder.email.toLowerCase().includes(term)
+                );
+            };
+
+            // Function to render certificate holders
+            const renderHolders = (holders) => {
+                const globalHolders = holders.filter(h => h.isGlobal);
+                const regularHolders = holders.filter(h => !h.isGlobal);
+
+                return `
+                    ${globalHolders.length > 0 ? `
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="margin: 0 0 15px 0; color: #2196f3; border-bottom: 2px solid #e3f2fd; padding-bottom: 8px; display: flex; align-items: center;">
+                                <i class="fas fa-globe" style="margin-right: 8px; color: #2196f3;"></i>
+                                Global Certificate Holders
+                            </h3>
+                            ${globalHolders.map(renderHolderCard).join('')}
+                        </div>
+                    ` : ''}
+                    ${regularHolders.length > 0 ? `
+                        <div>
+                            <h3 style="margin: 0 0 15px 0; color: #059669; border-bottom: 2px solid #e8f5e8; padding-bottom: 8px; display: flex; align-items: center;">
+                                <i class="fas fa-building" style="margin-right: 8px; color: #059669;"></i>
+                                Saved Certificate Holders
+                            </h3>
+                            ${regularHolders.map(renderHolderCard).join('')}
+                        </div>
+                    ` : ''}
+                    ${holders.length === 0 ? `
+                        <div style="text-align: center; padding: 40px; color: #6b7280;">
+                            <i class="fas fa-search" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p style="margin: 0; font-size: 16px;">No certificate holders found</p>
+                        </div>
+                    ` : ''}
+                `;
+            };
+
+            // Function to render individual holder card
+            const renderHolderCard = (holder) => `
+                <div style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 16px; background: white; margin-bottom: 12px; position: relative; transition: all 0.3s ease;">
+                    ${holder.isGlobal ? `
+                        <div style="position: absolute; top: 8px; right: 8px; background: #2196f3; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; z-index: 10;">
+                            <i class="fas fa-globe" style="margin-right: 4px;"></i>GLOBAL
+                        </div>
+                    ` : `
+                        <div style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                            <button onclick="event.stopPropagation(); deleteCertificateHolder('${holder.name.replace(/'/g, "\\'")}', '${holder.email}')"
+                                    style="background: #dc2626; color: white; border: none; padding: 6px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: background 0.2s ease;"
+                                    onmouseover="this.style.background='#b91c1c'"
+                                    onmouseout="this.style.background='#dc2626'"
+                                    title="Delete certificate holder">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `}
+                    <div onclick="selectCertificateHolder('${holder.name.replace(/'/g, "\\'")}', '${holder.address}', '${holder.cityStateZip}', '${holder.email}')"
+                         style="cursor: pointer; padding-right: ${holder.isGlobal ? '60px' : '50px'};"
+                         onmouseover="this.closest('div').style.borderColor='#059669'; this.closest('div').style.backgroundColor='#f0fdf4';"
+                         onmouseout="this.closest('div').style.borderColor='#e5e7eb'; this.closest('div').style.backgroundColor='white';">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
+                                    ${holder.name}
+                                </h4>
+                                <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
+                                    ${holder.address}
+                                </p>
+                                <p style="margin: 0 0 4px 0; color: #4b5563; font-size: 14px;">
+                                    ${holder.cityStateZip}
+                                </p>
+                                <p style="margin: 0; color: #059669; font-size: 14px; font-weight: 500;">
+                                    ${holder.email}
+                                </p>
+                            </div>
+                            <div style="color: #059669; font-size: 18px; margin-top: 8px;">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create modal HTML with search functionality
+            const modalHTML = `
+                <div id="certificateHoldersPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 20000;">
+                    <div style="background: white; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                        <!-- Header -->
+                        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+                                <i class="fas fa-address-book" style="margin-right: 8px;"></i>
+                                Certificate Holders
+                            </h3>
+                            <button onclick="closeCertificateHoldersPopup()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+                        </div>
+
+                        <!-- Content -->
+                        <div style="padding: 20px; flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                            <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px;">
+                                Click on a certificate holder to auto-populate the form fields.
+                            </p>
+
+                            <!-- Search Box -->
+                            <div style="margin-bottom: 20px; position: relative;">
+                                <input type="text" id="certificateHolderSearch" placeholder="Search certificate holders..."
+                                       style="width: 100%; padding: 12px 40px 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                                       oninput="updateCertificateHoldersDisplay(this.value)">
+                                <i class="fas fa-search" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #6b7280;"></i>
+                            </div>
+
+                            <!-- Certificate Holders List -->
+                            <div id="certificateHoldersContainer" style="flex: 1; overflow-y: auto;">
+                                ${renderHolders(filterHolders())}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Make update function available globally for search
+            window.updateCertificateHoldersDisplay = (searchTerm) => {
+                const filteredHolders = filterHolders(searchTerm);
+                const holdersContainer = document.getElementById('certificateHoldersContainer');
+                if (holdersContainer) {
+                    holdersContainer.innerHTML = renderHolders(filteredHolders);
+                }
+            };
+
+            // Focus search input after modal loads
+            setTimeout(() => {
+                const searchInput = document.getElementById('certificateHolderSearch');
+                if (searchInput) searchInput.focus();
+            }, 100);
+        };
+
+        // Function to select and populate certificate holder information
+        window.selectCertificateHolder = function(name, address, cityStateZip, email) {
+            console.log('📝 Populating certificate holder:', name);
+
+            // Populate the form fields - using client dashboard field IDs
+            const nameField = document.getElementById('holderName');
+            const addressField = document.getElementById('holderAddress');
+            const cityField = document.getElementById('holderCity');
+
+            if (nameField) nameField.value = name;
+            if (addressField) addressField.value = address;
+            if (cityField) cityField.value = cityStateZip;
+
+            // Add email to recipients field
+            const emailField = document.getElementById('coiEmail');
+            if (emailField) {
+                if (emailField.value && !emailField.value.includes(email)) {
+                    emailField.value += emailField.value ? ', ' + email : email;
+                } else if (!emailField.value) {
+                    emailField.value = email;
+                }
+            }
+
+            // Close the popup
+            closeCertificateHoldersPopup();
+
+            // Show success message
+            setTimeout(() => {
+                alert(`Certificate holder "${name}" information has been populated!`);
+            }, 100);
+        };
+
+        // Function to close certificate holders popup
+        window.closeCertificateHoldersPopup = function() {
+            const popup = document.getElementById('certificateHoldersPopup');
+            if (popup) {
+                popup.remove();
+            }
+        };
+
+        // Function to delete a saved certificate holder (localStorage)
+        window.deleteCertificateHolder = function(holderName, holderEmail) {
+            console.log('🗑️ Attempting to delete certificate holder:', holderName, holderEmail);
+
+            // Confirm deletion
+            if (!confirm(`Are you sure you want to delete "${holderName}"?`)) {
+                console.log('🚫 Delete cancelled by user');
+                return;
+            }
+
+            // Remove from saved holders array
+            const initialCount = window.savedCertificateHolders.length;
+            window.savedCertificateHolders = window.savedCertificateHolders.filter(holder =>
+                !(holder.name === holderName && holder.email === holderEmail)
+            );
+
+            const finalCount = window.savedCertificateHolders.length;
+            const deleted = initialCount > finalCount;
+
+            if (deleted) {
+                // Save to localStorage
+                try {
+                    localStorage.setItem('vigagency_saved_certificate_holders', JSON.stringify(window.savedCertificateHolders));
+                    console.log('✅ Certificate holder deleted and localStorage updated:', holderName);
+
+                    // Refresh the popup display
+                    const searchInput = document.getElementById('certificateHolderSearch');
+                    const searchTerm = searchInput ? searchInput.value : '';
+                    window.updateCertificateHoldersDisplay(searchTerm);
+
+                } catch (error) {
+                    console.error('❌ Failed to update localStorage after deletion:', error);
+                    alert('Failed to delete certificate holder. Please try again.');
+                }
+            }
+        };
+
+        // Load saved certificate holders from localStorage (shared with admin)
+        window.loadSavedCertificateHolders = function() {
+            try {
+                const saved = localStorage.getItem('vigagency_saved_certificate_holders');
+                if (saved) {
+                    window.savedCertificateHolders = JSON.parse(saved);
+                    console.log('✅ Loaded', window.savedCertificateHolders.length, 'saved certificate holders from localStorage');
+                } else {
+                    window.savedCertificateHolders = [];
+                    console.log('ℹ️ No saved certificate holders found in localStorage');
+                }
+            } catch (error) {
+                console.error('❌ Failed to load saved certificate holders:', error);
+                window.savedCertificateHolders = [];
+            }
+        };
+
+        // Load saved holders on page load
+        window.loadSavedCertificateHolders();
     </script>
 </body>
 </html>

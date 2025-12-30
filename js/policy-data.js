@@ -341,7 +341,22 @@ class PolicyDataManager {
             } : 'None');
 
             if (policy) {
-                console.log('✅ AUTHENTICATION SUCCESS');
+                // Check if policy is active (defaults to true if not specified)
+                const isActive = policy.active !== false;
+                console.log('🔐 POLICY ACTIVE CHECK:', {
+                    active: policy.active,
+                    isActive: isActive
+                });
+
+                if (!isActive) {
+                    console.log('❌ AUTHENTICATION FAILED - Policy is inactive');
+                    return {
+                        success: false,
+                        error: 'Your policy is currently inactive. Please contact your agent for assistance.'
+                    };
+                }
+
+                console.log('✅ AUTHENTICATION SUCCESS - Policy is active');
                 return {
                     success: true,
                     user: {
