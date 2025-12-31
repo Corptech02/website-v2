@@ -345,18 +345,23 @@ class PolicyDataManager {
                 const isActive = policy.active !== false;
                 console.log('🔐 POLICY ACTIVE CHECK:', {
                     active: policy.active,
-                    isActive: isActive
+                    activeType: typeof policy.active,
+                    activeValue: policy.active,
+                    isActive: isActive,
+                    policyObject: policy
                 });
 
                 if (!isActive) {
                     console.log('❌ AUTHENTICATION FAILED - Policy is inactive');
+                    console.log('❌ BLOCKING LOGIN for policy:', policy.policy_number);
                     return {
                         success: false,
-                        error: 'Your policy is currently inactive. Please contact your agent for assistance.'
+                        error: 'Your policy is currently inactive. Please contact your agent for assistance.',
+                        blocked: true
                     };
                 }
 
-                console.log('✅ AUTHENTICATION SUCCESS - Policy is active');
+                console.log('✅ AUTHENTICATION SUCCESS - Policy is active and login allowed');
                 return {
                     success: true,
                     user: {

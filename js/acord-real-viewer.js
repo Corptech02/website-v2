@@ -441,7 +441,7 @@ function createRealFormFields(policyId, policyData) {
     const fields = [
         // === DATE (top right) ===
         { id: 'date', x: 664, y: 47, width: 103, height: 16,
-          value: new Date().toLocaleDateString() },
+          value: '' }, // Empty - will be populated when sending to certificate holders
 
         // === PRODUCER SECTION (top left) ===
         { id: 'producer', x: 29, y: 172, width: 364, height: 16,
@@ -459,7 +459,7 @@ function createRealFormFields(policyId, policyData) {
 
         // === CONTACT INFO (right side of producer) ===
         { id: 'contactName', x: 450, y: 156, width: 317, height: 16,
-          value: '' },
+          value: getCompanyInfoForAgency(policyData?.agency).producer },
         { id: 'phone', x: 459, y: 172, width: 164, height: 16,
           value: getCompanyInfoForAgency(policyData?.agency).phone },
         { id: 'fax', x: 673, y: 172, width: 94, height: 16,
@@ -471,26 +471,48 @@ function createRealFormFields(policyId, policyData) {
         { id: 'insured', x: 94, y: 250, width: 299, height: 16,
           value: policyData?.clientName || policyData?.insured?.['Name/Business Name'] || policyData?.insured?.['Primary Named Insured'] || '', bold: true },
         { id: 'insuredAddress1', x: 94, y: 265, width: 299, height: 16,
-          value: policyData?.contact?.['Mailing Address'] || '' },
+          value: (() => {
+            const fullAddress = policyData?.address || policyData?.contact?.['Mailing Address'] || '';
+            if (fullAddress) {
+              // Split address to extract street address only
+              const parts = fullAddress.split(',');
+              return parts[0]?.trim() || ''; // Just the street address
+            }
+            return '';
+          })() },
         { id: 'insuredAddress2', x: 94, y: 281, width: 299, height: 16,
-          value: '' },
+          value: (() => {
+            const fullAddress = policyData?.address || policyData?.contact?.['Mailing Address'] || '';
+            if (fullAddress) {
+              // Extract city, state, zip from full address
+              const parts = fullAddress.split(',');
+              if (parts.length >= 2) {
+                // Join everything after the first part (city, state, zip)
+                return parts.slice(1).join(',').trim();
+              }
+            }
+            return '';
+          })() },
         { id: 'insuredCity', x: 94, y: 296, width: 216, height: 16,
-          value: policyData?.contact?.['City'] || '' },
+          value: '' }, // Remove city field
         { id: 'insuredState', x: 309, y: 296, width: 23, height: 16,
-          value: policyData?.contact?.['State'] || '' },
+          value: '' }, // Remove state field
         { id: 'insuredZip', x: 333, y: 296, width: 60, height: 16,
-          value: policyData?.contact?.['ZIP Code'] || '' },
+          value: '' }, // Remove zip field
 
         // === INSURER SECTION (companies A-F) ===
         { id: 'insurerA', x: 454, y: 218, width: 243, height: 16,
           value: (policyData?.carrier && policyData.carrier !== '') ?
-                 (policyData.carrier === 'Progressive' ? 'Progressive Preferred Insurance Company' : policyData.carrier) :
+                 (policyData.carrier === 'Progressive' ? 'Progressive Preferred Insurance Company' :
+                  policyData.carrier === 'GEICO' ? 'GEICO MARINE INSURANCE COMPANY' : policyData.carrier) :
                  (policyData?.overview?.['Carrier'] && policyData.overview['Carrier'] !== '') ?
-                 (policyData.overview['Carrier'] === 'Progressive' ? 'Progressive Preferred Insurance Company' : policyData.overview['Carrier']) :
+                 (policyData.overview['Carrier'] === 'Progressive' ? 'Progressive Preferred Insurance Company' :
+                  policyData.overview['Carrier'] === 'GEICO' ? 'GEICO MARINE INSURANCE COMPANY' : policyData.overview['Carrier']) :
                  'Progressive Preferred Insurance Company' },
         { id: 'insurerANaic', x: 707, y: 218, width: 60, height: 16,
           value: (policyData?.carrier === 'Progressive' || policyData?.overview?.['Carrier'] === 'Progressive' ||
-                 (!policyData?.carrier && !policyData?.overview?.['Carrier'])) ? '24260' : '' },
+                 (!policyData?.carrier && !policyData?.overview?.['Carrier'])) ? '24260' :
+                 (policyData?.carrier === 'GEICO' || policyData?.overview?.['Carrier'] === 'GEICO') ? '37923' : '' },
 
         // === GENERAL LIABILITY CHECKBOXES ===
         { id: 'glCheck', x: 47, y: 390, width: 18, height: 16,
@@ -743,7 +765,7 @@ function createRealFormFields(policyId, policyData) {
               const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
               const cargoDeductible = policyData?.coverage?.cargo_deductible || policyData?.coverage?.['Cargo Deductible'] || '';
               return (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None' && cargoDeductible && cargoDeductible !== 'None') ?
-                     `DED. $${cargoDeductible}` : '';
+                     `DED. $${cargoDeductible.toString().replace(/^\$/, '')}` : '';
           })() },
         { id: 'otherLimit2', x: 684, y: 702, width: 83, height: 16,
           value: (function() {
@@ -813,12 +835,16 @@ function createRealFormFields(policyId, policyData) {
               const cargoLimit = policyData?.coverage?.cargo_limit || policyData?.coverage?.['Cargo Limit'] || '';
               // If there's cargo coverage, show it
               if (cargoLimit && cargoLimit !== '0' && cargoLimit !== '' && cargoLimit !== 'None') {
-                  return `LIMIT $${cargoLimit}`;
+                  // Remove any existing $ sign to avoid double dollar signs
+                  const cleanLimit = cargoLimit.toString().replace(/^\$/, '');
+                  return `LIMIT $${cleanLimit}`;
               }
               // Otherwise show primary liability limit
               const liabilityLimit = policyData?.coverage?.liability_limits || policyData?.coverage?.['Liability Limits'] || '';
               if (liabilityLimit) {
-                  return `$${liabilityLimit}`;
+                  // Remove any existing $ sign and CSL text to avoid duplicates
+                  const cleanLiabilityLimit = liabilityLimit.toString().replace(/^\$/, '').replace(/\s*CSL\s*/i, '');
+                  return `$${cleanLiabilityLimit}`;
               }
               return '';
           })() },
@@ -872,7 +898,7 @@ function createRealFormFields(policyId, policyData) {
 
         // === GENERAL LIABILITY LIMITS ===
         { id: 'eachOccurrence', x: 684, y: 390, width: 83, height: 16,
-          value: policyData?.coverage?.liability_limits || policyData?.coverage?.['Liability Limits'] || '1,000,000' },
+          value: (policyData?.coverage?.liability_limits || policyData?.coverage?.['Liability Limits'] || '1,000,000').replace(/\s*CSL\s*/i, '').replace(/^\$/, '') },
         { id: 'damageRented', x: 684, y: 406, width: 83, height: 16,
           value: '100,000' },
         { id: 'medExp', x: 684, y: 421, width: 83, height: 16,
@@ -882,7 +908,7 @@ function createRealFormFields(policyId, policyData) {
               return medicalValue;
           })() },
         { id: 'personalAdv', x: 684, y: 437, width: 83, height: 16,
-          value: policyData?.coverage?.liability_limits || policyData?.coverage?.['Liability Limits'] || '1,000,000' },
+          value: (policyData?.coverage?.liability_limits || policyData?.coverage?.['Liability Limits'] || '1,000,000').replace(/\s*CSL\s*/i, '').replace(/^\$/, '') },
         { id: 'generalAgg', x: 684, y: 452, width: 83, height: 16,
           value: policyData?.coverage?.general_aggregate || policyData?.coverage?.['General Aggregate'] || '2,000,000' },
         { id: 'productsOps', x: 684, y: 468, width: 83, height: 16,

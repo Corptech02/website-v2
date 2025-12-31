@@ -10,8 +10,8 @@
     <!-- Load policy database FIRST -->
     <script src="/js/policy-data.js?v=20251230-active-status-check-1766956500"></script>
 
-    <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251230-active-status-fix-1766957000');</script>
-    <!-- CACHE BUSTER: 20251230-active-status-fix-1766957000 -->
+    <script>console.log('✅ VigAgency Admin Dashboard Loading - v20251230-policy-id-protection-1766960500');</script>
+    <!-- CACHE BUSTER: 20251230-policy-id-protection-1766960500 -->
     <title>Admin Dashboard - Vanguard Insurance Group</title>
     <link rel="stylesheet" href="../css/styles.css?v=11">
     <link rel="stylesheet" href="../css/pages.css?v=11">
@@ -2637,9 +2637,9 @@
                         }
                     };
 
-                    window.sendPolicyCOI = function(policyId, policyNumber) {
+                    window.sendPolicyCOI = async function(policyId, policyNumber) {
                         console.log('📧 Sending COI for policy:', policyNumber);
-                        const policy = window.policyDB.getPolicyById(policyId);
+                        const policy = await window.policyDB.getPolicyById(policyId);
                         if (!policy) {
                             alert('Policy not found.');
                             return;
@@ -3288,6 +3288,19 @@
                             console.log('📝 Overlaid third-party certificate holder:', holderName);
                         }
 
+                        // Add current date overlay in top right
+                        const currentDate = new Date().toLocaleDateString();
+                        ctx.fillStyle = '#000000';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'left';
+
+                        // Position for date field (top right area of ACORD form)
+                        const dateX = 664 * 1.3; // X position from ACORD viewer scaled
+                        const dateY = 47 * 1.3; // Y position from ACORD viewer scaled
+
+                        ctx.fillText(currentDate, dateX, dateY + 12); // +12 for baseline adjustment
+                        console.log('📅 Overlaid current date:', currentDate, 'at position:', dateX, dateY);
+
                         // Convert canvas to blob
                         canvas.toBlob((blob) => {
                             resolve(blob);
@@ -3472,6 +3485,18 @@ contact@vigagency.com`;
                 console.log('🔍 Modal background clicked');
                 e.target.style.display = 'none';
                 console.log('✅ Modal closed by background click');
+                return;
+            }
+
+            // Ignore clicks on policy status switch elements
+            if (e.target.closest('.status-switch, .status-slider')) {
+                console.log('🔍 Status switch clicked - ignoring for button delegation');
+                return;
+            }
+
+            // Ignore clicks on form submit buttons (they have their own handlers)
+            if (e.target.type === 'submit' || e.target.closest('button[type="submit"]')) {
+                console.log('🔍 Submit button clicked - ignoring for button delegation');
                 return;
             }
 
@@ -3760,9 +3785,28 @@ contact@vigagency.com`;
                     if (value === null && this._currentEditingPolicyId !== null) {
                         console.warn('🚨 WARNING: Attempt to clear currentEditingPolicyId from:', this._currentEditingPolicyId, 'to:', value);
                         console.trace('Clear attempt stack trace:');
+
+                        // Add protection: Only allow clearing from authorized functions
+                        const stack = new Error().stack;
+                        console.log('🔍 FULL STACK TRACE:', stack);
+
+                        const isAuthorizedClear = stack.includes('closeEditPolicyModal') ||
+                                               stack.includes('editPolicyForm') ||
+                                               stack.includes('updatePolicy') ||
+                                               stack.includes('addNewPolicy'); // Add this as authorized
+
+                        if (!isAuthorizedClear) {
+                            console.error('🚫 BLOCKED: Unauthorized attempt to clear currentEditingPolicyId');
+                            console.error('🚫 Previous value:', this._currentEditingPolicyId);
+                            console.error('🚫 Attempted new value:', value);
+                            console.error('🚫 Stack trace lines:', stack.split('\n').slice(0, 10));
+                            return; // Don't allow the clearing
+                        } else {
+                            console.log('✅ AUTHORIZED: Clearing currentEditingPolicyId is allowed from this context');
+                        }
                     }
                     this._currentEditingPolicyId = value;
-                    console.log('🔑 currentEditingPolicyId changed to:', value);
+                    console.log('🔑 currentEditingPolicyId changed from:', this._currentEditingPolicyId, 'to:', value);
                 }
             });
             window.currentEditingPolicyId = policyId; // Set initial value
@@ -3818,7 +3862,15 @@ contact@vigagency.com`;
             // Set policy active status (defaults to true if not specified)
             const activeCheckbox = document.getElementById('editPolicyActive');
             if (activeCheckbox) {
-                activeCheckbox.checked = policy.active !== false; // Default to true unless explicitly false
+                const isActive = policy.active !== false; // Default to true unless explicitly false
+                activeCheckbox.checked = isActive;
+                console.log('🔄 EDIT POLICY: Setting active status:', {
+                    policyActive: policy.active,
+                    isActive: isActive,
+                    checkboxChecked: activeCheckbox.checked,
+                    policyKeys: Object.keys(policy),
+                    policyHasActiveKey: policy.hasOwnProperty('active')
+                });
             }
 
             // Show modal immediately
@@ -4356,7 +4408,7 @@ contact@vigagency.com`;
     <script src="../pdf.min.js"></script>
 
     <!-- Real ACORD Viewer System -->
-    <script src="../js/acord-real-viewer.js?v=20251230-checkbox-updates-1766956000"></script>
+    <script src="../js/acord-real-viewer.js?v=20251231-dynamic-date-update"></script>
     <script src="../js/acord-25-embedded.js?v=20251221-concise"></script>
     <script src="../js/fix-acord-download-print.js?v=20251222-fix-import-interception"></script>
     <script>
@@ -4588,7 +4640,7 @@ contact@vigagency.com`;
 
             // Ensure policies are loaded
             if (!window.allPolicies || window.allPolicies.length === 0) {
-                const policies = window.policyDB ? window.policyDB.getAllPolicies() : [];
+                const policies = window.policyDB ? await window.policyDB.getAllPolicies() : [];
                 window.allPolicies = policies;
             }
 
@@ -4695,6 +4747,19 @@ contact@vigagency.com`;
 
                         console.log('📝 Overlaid third-party certificate holder:', holderName);
                     }
+
+                    // Add current date overlay in top right
+                    const currentDate = new Date().toLocaleDateString();
+                    ctx.fillStyle = '#000000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'left';
+
+                    // Position for date field (top right area of ACORD form)
+                    const dateX = 664 * 1.3; // X position from ACORD viewer scaled
+                    const dateY = 47 * 1.3; // Y position from ACORD viewer scaled
+
+                    ctx.fillText(currentDate, dateX, dateY + 12); // +12 for baseline adjustment
+                    console.log('📅 Overlaid current date:', currentDate, 'at position:', dateX, dateY);
 
                     // Convert canvas back to blob
                     canvas.toBlob((blob) => {
@@ -4843,6 +4908,11 @@ contact@vigagency.com`;
                             'email': policy.email,
                             'clientEmail': policy.clientEmail,
                             'contact.Email Address': policy.contact?.['Email Address']
+                        },
+                        'active field': {
+                            'active': policy.active,
+                            'status': policy.status,
+                            'active_type': typeof policy.active
                         },
                         'ALL_KEYS': Object.keys(policy)
                     });
@@ -8447,6 +8517,12 @@ contact@vigagency.com`;
 
         function closeEditPolicyModal(clearEditingId = false) {
             console.log('🔄 Closing edit policy modal...');
+            console.log('🔍 CLOSE MODAL DEBUG:', {
+                clearEditingId: clearEditingId,
+                currentEditingPolicyId: window.currentEditingPolicyId,
+                callStack: new Error().stack
+            });
+
             const modal = document.getElementById('editPolicyModal');
             if (modal) {
                 // Hide modal using display style (matches how it's shown with modal.style.display = 'flex')
@@ -8460,6 +8536,8 @@ contact@vigagency.com`;
             if (clearEditingId) {
                 window.currentEditingPolicyId = null;
                 console.log('✅ Editing ID cleared');
+            } else {
+                console.log('⚠️ Modal closed but currentEditingPolicyId preserved:', window.currentEditingPolicyId);
             }
         }
 
@@ -8487,10 +8565,22 @@ contact@vigagency.com`;
         document.getElementById('editPolicyForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            console.log('📝 FORM SUBMISSION STARTED: Event target:', e.target);
+            console.log('📝 FORM SUBMISSION: currentEditingPolicyId check:', window.currentEditingPolicyId);
+            console.log('📝 FORM SUBMISSION: Property descriptor:', Object.getOwnPropertyDescriptor(window, 'currentEditingPolicyId'));
+
+            // Add a brief delay to see if something is clearing it during form submission
+            await new Promise(resolve => setTimeout(resolve, 10));
+            console.log('📝 FORM SUBMISSION (after 10ms delay): currentEditingPolicyId check:', window.currentEditingPolicyId);
+
             if (!window.currentEditingPolicyId) {
+                console.error('❌ FORM SUBMISSION: No currentEditingPolicyId found!');
+                console.error('❌ FORM SUBMISSION: Current value:', window.currentEditingPolicyId);
+                console.error('❌ FORM SUBMISSION: Type:', typeof window.currentEditingPolicyId);
                 alert('No policy selected for editing');
                 return;
             }
+            console.log('✅ FORM SUBMISSION: Proceeding with policy ID:', window.currentEditingPolicyId);
 
             // Get form data
             const formData = new FormData(this);
@@ -8513,10 +8603,16 @@ contact@vigagency.com`;
                 expiration_date: formData.get('expirationDate'),
                 status: formData.get('status'),
                 address: formData.get('address').trim(),
-                active: formData.get('policyActive') === 'on' // Checkbox value
+                active: document.getElementById('editPolicyActive').checked // Get checkbox state directly
             };
 
             console.log('🚨 SAVING DATA DEBUG:', updatedData);
+            console.log('🚨 ACTIVE STATUS DEBUG:', {
+                formDataRaw: formData.get('policyActive'),
+                checkboxChecked: document.getElementById('editPolicyActive').checked,
+                checkboxOn: formData.get('policyActive') === 'on',
+                finalActiveValue: updatedData.active
+            });
 
             // Get coverage data from the new coverage forms
             const coverageData = {
@@ -8547,15 +8643,25 @@ contact@vigagency.com`;
             }
 
             // Collect vehicles data from the modal
-            const vehicleContainers = document.querySelectorAll('#vehiclesList .vehicle-item');
+            const vehicleContainers = document.querySelectorAll('#vehiclesList > div');
             const vehicles = [];
+            console.log('🚗 VEHICLE EXTRACTION: Found', vehicleContainers.length, 'vehicle containers');
             vehicleContainers.forEach((container, index) => {
+                console.log('🚗 VEHICLE EXTRACTION: Processing container', index, container);
+                // Look for input fields by type since IDs might not match
+                const yearInput = container.querySelector('input[type="number"]');
+                const textInputs = container.querySelectorAll('input[type="text"]');
+                console.log('🚗 VEHICLE EXTRACTION: yearInput:', !!yearInput, 'textInputs:', textInputs.length);
+
                 const vehicleData = {
-                    year: container.querySelector(`#vehicleYear_${index}`)?.value || '',
-                    make: container.querySelector(`#vehicleMake_${index}`)?.value || '',
-                    model: container.querySelector(`#vehicleModel_${index}`)?.value || '',
-                    vin: container.querySelector(`#vehicleVin_${index}`)?.value || ''
+                    year: yearInput?.value || '',
+                    make: textInputs[0]?.value || '',
+                    model: textInputs[1]?.value || '',
+                    type: textInputs[2]?.value || '',
+                    radius: textInputs[3]?.value || '',
+                    vin: textInputs[4]?.value || ''
                 };
+                console.log('🚗 VEHICLE EXTRACTION: Extracted data:', vehicleData);
                 // Only add if at least one field has data
                 if (vehicleData.year || vehicleData.make || vehicleData.model || vehicleData.vin) {
                     vehicles.push(vehicleData);
@@ -8566,8 +8672,9 @@ contact@vigagency.com`;
             }
 
             // Collect trailers data from the modal
-            const trailerContainers = document.querySelectorAll('#trailersList .trailer-item');
+            const trailerContainers = document.querySelectorAll('#trailersList > div');
             const trailers = [];
+            console.log('🚛 TRAILER EXTRACTION: Found', trailerContainers.length, 'trailer containers');
             trailerContainers.forEach((container, index) => {
                 const trailerData = {
                     year: container.querySelector(`#trailerYear_${index}`)?.value || '',
@@ -8585,8 +8692,9 @@ contact@vigagency.com`;
             }
 
             // Collect drivers data from the modal
-            const driverContainers = document.querySelectorAll('#driversList .driver-item');
+            const driverContainers = document.querySelectorAll('#driversList > div');
             const drivers = [];
+            console.log('👤 DRIVER EXTRACTION: Found', driverContainers.length, 'driver containers');
             driverContainers.forEach((container, index) => {
                 const driverData = {
                     name: container.querySelector(`#driverName_${index}`)?.value || '',
@@ -8999,6 +9107,17 @@ contact@vigagency.com`;
                 if (!recipientName || !recipientEmail) {
                     alert('Please fill in all required fields.');
                     return;
+                }
+
+                // Update the date field with current date before sending
+                const dateField = document.getElementById('field_date');
+                if (dateField) {
+                    const currentDate = new Date().toLocaleDateString();
+                    dateField.value = currentDate;
+                    if (window.realPdfState && window.realPdfState.formData) {
+                        window.realPdfState.formData['date'] = currentDate;
+                    }
+                    console.log('✅ Updated COI date field to current date:', currentDate);
                 }
 
                 // Simulate sending email (replace with actual email service)
