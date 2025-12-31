@@ -531,6 +531,76 @@
     <script src="../js/main.js?v=20251220"></script>
     <script src="../js/policy-data.js?v=20251231-inactive-policy-fix"></script>
     <script>
+        // Simple canvas overlay function for COI emails - COPIED DIRECTLY FROM WORKING ADMIN DASHBOARD
+        window.createSimpleCOIWithTextOverlay = async function(coiDocument, holderType, policy) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    // Draw the original COI image
+                    ctx.drawImage(img, 0, 0);
+
+                    // Set up text styling
+                    ctx.fillStyle = '#000000';
+                    ctx.font = '14px Arial, sans-serif';
+                    ctx.textAlign = 'left';
+
+                    // Certificate holder text position
+                    const startX = 50;
+                    const startY = 900;
+
+                    if (holderType === 'business') {
+                        // Use client information
+                        const clientName = policy.insured_name || policy.client_name || 'Unknown Client';
+                        ctx.fillText(clientName, startX, startY);
+                        console.log('📝 Overlaid business certificate holder:', clientName);
+                    } else {
+                        // Use third-party information from form fields - need to get from client modal
+                        const holderName = document.getElementById('holderName')?.value?.trim() || 'Third Party Holder';
+                        const holderAddress = document.getElementById('holderAddress')?.value?.trim() || '';
+                        const holderCity = document.getElementById('holderCity')?.value?.trim() || '';
+
+                        ctx.fillText(holderName, startX, startY);
+                        if (holderAddress) {
+                            ctx.fillText(holderAddress, startX, startY + 20);
+                        }
+                        if (holderCity) {
+                            ctx.fillText(holderCity, startX, startY + 40);
+                        }
+                        console.log('📝 Overlaid third-party certificate holder:', holderName);
+                    }
+
+                    // Add current date overlay in top right
+                    const currentDate = new Date().toLocaleDateString();
+                    ctx.fillStyle = '#000000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'left';
+
+                    // Position for date field (top right area of ACORD form)
+                    const dateX = 664 * 1.3; // X position from ACORD viewer scaled
+                    const dateY = 47 * 1.3; // Y position from ACORD viewer scaled
+
+                    ctx.fillText(currentDate, dateX, dateY + 12); // +12 for baseline adjustment
+                    console.log('📅 Overlaid current date:', currentDate, 'at position:', dateX, dateY);
+
+                    // Convert canvas to blob
+                    canvas.toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/png');
+                };
+
+                img.src = coiDocument.dataUrl;
+            });
+        };
+
+        console.log('✅ COI overlay function defined - ready to use');
+    </script>
+    <script>
         console.log('Dashboard loaded - Version 2.4 with fixed certificate holders and localStorage - 20251230');
         const API_BASE_URL = ''; // Use same ngrok domain (proxy forwards to API server)
 
@@ -608,15 +678,26 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Email Recipients</label>
-                                    <input type="email" id="coiEmail" placeholder="recipient@example.com" value="${policy.client_email || ''}">
-                                    <div class="help-text">Multiple emails can be separated by commas</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <label><strong>Email Recipients</strong></label>
+                                        <button type="button" onclick="addCOIEmailRecipient()" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                            + Add Recipient
+                                        </button>
+                                    </div>
+                                    <div id="coiEmailRecipientsContainer">
+                                        <div class="coi-email-recipient-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                            <input type="email" class="coi-email-recipient" required
+                                                   style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                                                   placeholder="recipient@example.com" value="${policy.client_email || ''}">
+                                            <button type="button" onclick="removeCOIEmailRecipient(this)"
+                                                    style="background: #dc3545; color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="help-text">Click "Add Recipient" to add more email addresses</div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label>Additional Notes (Optional)</label>
-                                    <textarea id="coiNotes" rows="3" placeholder="Any specific requirements or notes for the certificate"></textarea>
-                                </div>
 
                                 <div class="form-actions">
                                     <button type="button" class="btn-submit" onclick="submitCOIModal()">
@@ -666,14 +747,24 @@
         async function submitCOIModal() {
             const form = document.getElementById('coiModalForm');
             const submitBtn = document.querySelector('#coiModal .btn-submit');
-            const originalText = submitBtn.innerHTML;
+
+            // Get the current policy data
+            const policyNumber = localStorage.getItem('vanguard_policy_number');
+            const policy = await window.policyDB.getPolicyById(policyNumber);
+
+            if (!policy) {
+                alert('Policy data not found. Please refresh the page and try again.');
+                return;
+            }
 
             // Get form values
             const holderType = document.querySelector('input[name="holderType"]:checked').value;
-            const email = document.getElementById('coiEmail').value.trim();
-            const notes = document.getElementById('coiNotes').value.trim();
 
-            if (!email) {
+            // Collect all email recipients from multiple email fields
+            const emailInputs = document.querySelectorAll('.coi-email-recipient');
+            const emails = Array.from(emailInputs).map(input => input.value.trim()).filter(email => email);
+
+            if (emails.length === 0) {
                 alert('Please enter at least one email address');
                 return;
             }
@@ -696,8 +787,6 @@
                 }
             } else {
                 // Use policy holder's information
-                const policyNumber = localStorage.getItem('vanguard_policy_number');
-                const policy = window.policyDB.getPolicyByNumber(policyNumber);
                 certificateHolder = policy.insured_name;
                 if (policy.address) {
                     certificateHolder += '\n' + policy.address;
@@ -709,30 +798,71 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
             try {
-                const requestData = {
-                    to: email,
-                    cc: '',
-                    bcc: '',
-                    subject: `Certificate of Insurance - ${policy.insured_name} - Policy ${policy.policy_number}`,
-                    body: 'Please find attached your Certificate of Insurance.' + (notes ? '\n\nNotes: ' + notes : ''),
-                    policyData: {
-                        policyNumber: policy.policy_number || '',
-                        insuredName: policy.insured_name || '',
-                        carrier: policy.carrier || '',
-                        clientName: policy.insured_name || ''
-                    },
-                    certificateHolder: certificateHolder,
-                    provider: 'outlook'
-                };
+                // Get the COI document
+                if (!policy.coiDocuments || policy.coiDocuments.length === 0) {
+                    alert('No COI document found for this policy');
+                    return;
+                }
 
-                console.log('COI Request Data:', requestData);
+                const coiDoc = policy.coiDocuments[0];
+                console.log('🔍 COI document found:', coiDoc);
 
-                const response = await fetch('/api/coi/send-profile-pdf', {
+                // EXACTLY replicate admin dashboard approach
+                let modifiedCoiBlob;
+
+                // Use the directly defined overlay function (copied from admin dashboard)
+                try {
+                    console.log('✅ Using COI overlay function to add certificate holder and date...');
+                    modifiedCoiBlob = await window.createSimpleCOIWithTextOverlay(coiDoc, holderType, policy);
+                    console.log('📎 COI document modified with text overlay, size:', modifiedCoiBlob.size);
+                } catch (error) {
+                    console.error('❌ Error creating COI with overlay:', error);
+                    // Fallback to original document
+                    try {
+                        const response = await fetch(coiDoc.dataUrl);
+                        modifiedCoiBlob = await response.blob();
+                        console.log('📎 Fallback: Using original COI document, size:', modifiedCoiBlob.size);
+                        alert('Using original COI document due to overlay generation error.');
+                    } catch (fallbackError) {
+                        console.error('❌ Error accessing COI document:', fallbackError);
+                        alert('Error accessing COI document. Please try again.');
+                        return;
+                    }
+                }
+
+                // Create FormData for the request (matching admin dashboard format)
+                const formData = new FormData();
+                formData.append('from', 'contact@vigagency.com');
+                formData.append('to', emails.join(', '));
+                formData.append('subject', `Certificate of Insurance - ${policy.insured_name} - Policy ${policy.policy_number}`);
+
+                // Create email message
+                let emailMessage = `Dear Certificate Holder,
+
+Please find attached your Certificate of Insurance for ${policy.insured_name}.
+
+Policy Number: ${policy.policy_number}
+Insured: ${policy.insured_name}
+Carrier: ${policy.carrier || 'N/A'}
+
+Certificate Holder:
+${certificateHolder}
+
+This certificate serves as evidence of insurance coverage. Please contact us if you have any questions.
+
+Best regards,
+VigAgency Team
+contact@vigagency.com`;
+
+                formData.append('message', emailMessage);
+                formData.append('policyId', policy.id);
+                formData.append('attachment', modifiedCoiBlob, `COI_Certificate_${policy.policy_number}.png`);
+
+                console.log('COI FormData prepared for policy:', policy.policy_number, 'with attachment');
+
+                const response = await fetch('/api/coi/send-request', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
+                    body: formData
                 });
 
                 const data = await response.json();
@@ -743,14 +873,14 @@
                 } else {
                     alert('Error sending COI:\n\n' + (data.error || 'An unexpected error occurred. Please try again.'));
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
+                    submitBtn.innerHTML = '<i class="fas fa-envelope"></i> Send Certificate';
                 }
 
             } catch (error) {
                 console.error('COI sending error:', error);
                 alert('Connection Error\n\nUnable to connect to the server. Please try again.\n\nError: ' + error.message);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+                submitBtn.innerHTML = '<i class="fas fa-envelope"></i> Send Certificate';
             }
         }
 
@@ -1006,10 +1136,7 @@
 
         // View COI functionality for client dashboard
         window.viewCurrentCOI_DEBUG = async function(policyId) {
-            alert('🚨 COI DEBUG FUNCTION CALLED WITH POLICY ID: ' + policyId);
-            console.log('🚨🚨🚨 FUNCTION START - policyId:', policyId);
-            console.log('🚨 CLIENT COI DEBUG FUNCTION CALLED WITH ID:', policyId);
-            console.log('🔍 Client viewCurrentCOI_DEBUG called for policy:', policyId);
+            console.log('🔍 Client viewCurrentCOI called for policy:', policyId);
 
             let policy;
             try {
@@ -1725,23 +1852,13 @@
             if (addressField) addressField.value = address;
             if (cityField) cityField.value = cityStateZip;
 
-            // Add email to recipients field
-            const emailField = document.getElementById('coiEmail');
-            if (emailField) {
-                if (emailField.value && !emailField.value.includes(email)) {
-                    emailField.value += emailField.value ? ', ' + email : email;
-                } else if (!emailField.value) {
-                    emailField.value = email;
-                }
-            }
+            // Add email to recipients using the multiple email system
+            addCOIEmailRecipientWithValue(email);
 
             // Close the popup
             closeCertificateHoldersPopup();
 
-            // Show success message
-            setTimeout(() => {
-                alert(`Certificate holder "${name}" information has been populated!`);
-            }, 100);
+            // Certificate holder information populated (removed alert popup)
         };
 
         // Function to close certificate holders popup
@@ -1808,6 +1925,79 @@
 
         // Load saved holders on page load
         window.loadSavedCertificateHolders();
+
+        // Functions for managing multiple email recipients in COI modal
+        window.addCOIEmailRecipient = function() {
+            const container = document.getElementById('coiEmailRecipientsContainer');
+            if (!container) return;
+
+            const newRow = document.createElement('div');
+            newRow.className = 'coi-email-recipient-row';
+            newRow.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px;';
+            newRow.innerHTML = `
+                <input type="email" class="coi-email-recipient" required
+                       style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                       placeholder="recipient@example.com">
+                <button type="button" onclick="removeCOIEmailRecipient(this)"
+                        style="background: #dc3545; color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    Remove
+                </button>
+            `;
+            container.appendChild(newRow);
+        };
+
+        window.removeCOIEmailRecipient = function(button) {
+            const container = document.getElementById('coiEmailRecipientsContainer');
+            if (!container) return;
+
+            const rows = container.querySelectorAll('.coi-email-recipient-row');
+            if (rows.length > 1) {
+                button.parentElement.remove();
+            } else {
+                // Clear the value of the last remaining input instead of removing it
+                const input = button.parentElement.querySelector('.coi-email-recipient');
+                if (input) input.value = '';
+            }
+        };
+
+        window.addCOIEmailRecipientWithValue = function(email) {
+            const container = document.getElementById('coiEmailRecipientsContainer');
+            if (!container) return;
+
+            // Check if email already exists in any input
+            const existingInputs = container.querySelectorAll('.coi-email-recipient');
+            for (let input of existingInputs) {
+                if (input.value.trim() === email.trim()) {
+                    console.log('Email already exists:', email);
+                    return; // Email already exists, don't add duplicate
+                }
+            }
+
+            // Check if there's an empty input field to use
+            for (let input of existingInputs) {
+                if (!input.value.trim()) {
+                    input.value = email;
+                    console.log('Added email to empty field:', email);
+                    return;
+                }
+            }
+
+            // If all inputs are filled, create a new row
+            const newRow = document.createElement('div');
+            newRow.className = 'coi-email-recipient-row';
+            newRow.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px;';
+            newRow.innerHTML = `
+                <input type="email" class="coi-email-recipient" required
+                       style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                       placeholder="recipient@example.com" value="${email}">
+                <button type="button" onclick="removeCOIEmailRecipient(this)"
+                        style="background: #dc3545; color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    Remove
+                </button>
+            `;
+            container.appendChild(newRow);
+            console.log('Added email to new field:', email);
+        };
     </script>
 </body>
 </html>
