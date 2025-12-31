@@ -2963,6 +2963,14 @@
                         cityStateZip: 'Beaverton, OR 97008',
                         emails: ['certs@dat.com'],
                         isGlobal: true
+                    },
+                    {
+                        id: 'global_assure_assist',
+                        name: 'ASSURE ASSIST',
+                        streetAddress: '543 Country Club Dr, Unit B338',
+                        cityStateZip: 'Simi Valley, CA 93065',
+                        emails: ['coi@assureassist.com'],
+                        isGlobal: true
                     }
                 ];
             };
@@ -3057,7 +3065,7 @@
                 const renderHolders = async (searchTerm = '') => {
                     console.log('🚀 RENDER HOLDERS: Filtering certificate holders with search term:', searchTerm);
                     const { regular, global } = await filterCertificateHolders(searchTerm);
-                    console.log('🚀 RENDER HOLDERS: Found', regular.length, 'regular holders and', global.length, 'global holders');
+                    console.log('🚀 RENDER HOLDERS: Found', regular.length, 'regular holders and', global.length, 'global holders - CACHE BUSTER: ASSURE ASSIST SHOULD BE VISIBLE NOW!');
 
                     const renderHolderCard = (holder) => `
                         <div class="saved-holder-item" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: ${holder.isGlobal ? '#e3f2fd' : '#f8f9fa'};">
@@ -4412,7 +4420,7 @@ contact@vigagency.com`;
     <script src="../js/acord-25-embedded.js?v=20251221-concise"></script>
     <script src="../js/fix-acord-download-print.js?v=20251222-fix-import-interception"></script>
     <script>
-        console.log('🚀 Admin Dashboard loaded - MEDICAL PAYMENTS FIXED VERSION - v20251228-medical-payments-no-duplicates-' + Date.now());
+        console.log('🚀 Admin Dashboard loaded - CACHE BUSTER - ASSURE ASSIST ACTIVE - v20251231-force-refresh-' + Date.now());
         const API_BASE_URL = ''; // Use same domain (proxy will forward to CRM)
 
         // IMMEDIATE FUNCTION DEFINITIONS - Emergency fallback and CRM functions
@@ -5430,7 +5438,7 @@ contact@vigagency.com`;
         // Certificate Holders Storage - Global and Regular
         window.savedCertificateHolders = window.savedCertificateHolders || [];
 
-        // Global certificate holders (always shown first)
+        // Global certificate holders (always shown first) - FORCE REFRESH v20251231
         const globalCertificateHolders = [
             {
                 name: "Highway App, Inc.",
@@ -5452,8 +5460,17 @@ contact@vigagency.com`;
                 cityStateZip: "Beaverton, OR 97008",
                 email: "certs@dat.com",
                 isGlobal: true
+            },
+            {
+                name: "ASSURE ASSIST",
+                address: "543 Country Club Dr, Unit B338",
+                cityStateZip: "Simi Valley, CA 93065",
+                email: "coi@assureassist.com",
+                isGlobal: true,
+                forceRefresh: true
             }
         ];
+        console.log('🚀 GLOBAL HOLDERS ARRAY LENGTH:', globalCertificateHolders.length, 'ASSURE ASSIST AT INDEX:', globalCertificateHolders.findIndex(h => h.name === "ASSURE ASSIST"));
 
         // Simple Certificate Holders Popup for COI Modal
         window.showSavedCertificateHolders = function() {
