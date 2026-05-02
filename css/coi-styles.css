@@ -65,6 +65,19 @@
     width: 100%;
 }
 
+.nav-container .nav-brand {
+    flex: 1;
+}
+
+.nav-container .nav-menu {
+    flex: 0 0 auto;
+}
+
+.nav-container .nav-actions {
+    flex: 1;
+    justify-content: flex-end;
+}
+
 .nav-menu {
     display: flex;
     align-items: center;

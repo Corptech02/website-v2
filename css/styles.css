@@ -74,9 +74,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-brand {
+    flex: 1;
     position: relative;
     isolation: isolate;
     background: transparent;
+}
+
+.nav-menu {
+    flex: 0 0 auto;
+}
+
+.nav-actions {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
 .nav-brand a {
@@ -223,6 +235,12 @@ h1, h2, h3, h4, h5, h6 {
 .btn:hover::before {
     width: 300px;
     height: 300px;
+}
+
+/* Full-width Client Portal button needs a larger ripple */
+a[href="https://vigagency.com/mobile.html"]:hover::before {
+    width: 800px;
+    height: 800px;
 }
 
 .btn-primary {

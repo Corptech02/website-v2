@@ -1276,6 +1276,35 @@ app.delete('/api/certificate-holders/:id', (req, res) => {
     }
 });
 
+// Portal API proxy — forward /api/portal/* to CRM backend on port 3001
+const http = require('http');
+app.use('/api/portal', (req, res) => {
+    const body = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : undefined;
+    const headers = {
+        'content-type': 'application/json',
+        'host': '127.0.0.1:3001',
+    };
+    if (req.headers.authorization) headers['authorization'] = req.headers.authorization;
+    if (body) headers['content-length'] = Buffer.byteLength(body);
+
+    const options = {
+        hostname: '127.0.0.1',
+        port: 3001,
+        path: '/api/portal' + req.url,
+        method: req.method,
+        headers,
+    };
+    const proxy = http.request(options, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, { 'content-type': proxyRes.headers['content-type'] || 'application/json' });
+        proxyRes.pipe(res, { end: true });
+    });
+    proxy.on('error', (err) => {
+        if (!res.headersSent) res.status(502).json({ error: 'Portal API unavailable', detail: err.message });
+    });
+    if (body) proxy.write(body);
+    proxy.end();
+});
+
 // Fallback to serve HTML files
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
